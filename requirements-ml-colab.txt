@@ -1,0 +1,2 @@
+# Google Colab/Linux GPU: CUDA 12.8 PyTorch wheel, pinned separately from CPU.
+torch==2.7.0+cu128

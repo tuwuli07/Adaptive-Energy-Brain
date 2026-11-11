@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Adaptive Energy Brain Part 5 experiment metadata",
+  "description": "Reproducibility and leakage-control metadata for a forecasting experiment.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "phase",
+    "status",
+    "created_at_utc",
+    "seed",
+    "data",
+    "model",
+    "training",
+    "software",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "experiment_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "phase": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": ["planned", "running", "completed", "failed"]
+    },
+    "created_at_utc": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataset_manifest_sha256",
+        "source_ids",
+        "source_origins",
+        "training_partition_sha256",
+        "validation_partition_sha256",
+        "feature_columns",
+        "target_column",
+        "lookback_hours",
+        "horizon_hours",
+        "preprocessing_fit_partition"
+      ],
+      "properties": {
+        "dataset_manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "source_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "source_origins": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["measured", "simulated", "derived"]
+          }
+        },
+        "training_partition_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "validation_partition_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "test_partition_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "feature_columns": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "target_column": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lookback_hours": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "horizon_hours": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "preprocessing_fit_partition": {
+          "const": "train"
+        },
+        "graph_topology_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "graph_reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_nodes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "target_channels": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "target_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preprocessing_artifacts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "split_root": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "architecture", "configuration"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "architecture": {
+          "type": "object"
+        },
+        "configuration": {
+          "type": "object"
+        }
+      }
+    },
+    "training": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "epochs",
+        "batch_size",
+        "optimizer",
+        "loss",
+        "selection_partition",
+        "test_partition_used_for_selection"
+      ],
+      "properties": {
+        "epochs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "batch_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "optimizer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "loss": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selection_partition": {
+          "const": "validation"
+        },
+        "test_partition_used_for_selection": {
+          "const": false
+        },
+        "learning_rate": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "weight_decay": {
+          "type": "number",
+          "minimum": 0
+        },
+        "patience": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "min_delta": {
+          "type": "number",
+          "minimum": 0
+        },
+        "gradient_clip_norm": {
+          "oneOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_epochs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "best_epoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "best_validation_loss": {
+          "type": "number",
+          "minimum": 0
+        },
+        "duration_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "stop_reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checkpoint_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resume_checkpoint_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "history_path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "software": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "python_version",
+        "framework",
+        "framework_version",
+        "device",
+        "deterministic",
+        "package_versions"
+      ],
+      "properties": {
+        "python_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "framework": {
+          "type": "string",
+          "minLength": 1
+        },
+        "framework_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "device": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deterministic": {
+          "type": "boolean"
+        },
+        "source_revision": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{40}([a-fA-F0-9]{24})?$"
+        },
+        "hardware": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cuda_available",
+            "cuda_runtime",
+            "device_count",
+            "device_name"
+          ],
+          "properties": {
+            "cuda_available": {
+              "type": "boolean"
+            },
+            "cuda_runtime": {
+              "type": ["string", "null"]
+            },
+            "device_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "device_name": {
+              "type": ["string", "null"]
+            }
+          }
+        },
+        "package_versions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/sha256"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    }
+  }
+}

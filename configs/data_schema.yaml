@@ -1,0 +1,203 @@
+# Canonical records only: never apply these rules by rewriting data/raw/.
+# No resampling, unit conversion, imputation or currency conversion is implicit.
+schema_version: 1
+timestamp_policy: ISO 8601 strings with seconds, explicit UTC Z or +00:00, hourly boundaries
+missing_policy: Required fields cannot be absent/null; optional fields may be absent/null; NaN/Inf are rejected.
+unknown_column_policy: reject; keep source-specific columns in metadata.source_metadata
+currency_code: null # Set a three-uppercase-letter code here or pass it to validation.
+currency_policy: One declared currency per dataset; no automatic foreign exchange conversion.
+metadata_required: [source_id, origin, source_metadata]
+origin_values: [measured, simulated, derived]
+# Units must be supplied for every numeric column present in a dataset.
+# Text/timestamp columns have no physical unit and need no unit declaration.
+# {currency} expands to the explicitly configured currency code.
+columns:
+  timestamp_utc:
+    type: timestamp
+    description: Interval-start UTC timestamp; battery state instead uses a boundary timestamp.
+  interval_hours:
+    type: number
+    unit: h
+    const: 1
+    description: Duration of an hourly power/energy or price interval; power is an interval average.
+  building_id:
+    type: string
+    description: Stable building identifier, e.g. B01; never an unnamed campus aggregate.
+  asset_id:
+    type: string
+    description: Stable identifier of the shared renewable plant or battery.
+  site_id:
+    type: string
+    description: Stable weather measurement or scenario site identifier.
+  grid_id:
+    type: string
+    description: Stable grid point-of-common-coupling identifier.
+  generation_type:
+    type: string
+    enum: [solar, wind]
+    description: Renewable asset technology; each row represents one asset, not one building.
+  building_load_kw:
+    type: number
+    unit: kW
+    min: 0
+    description: Building demand excluding shared generation and storage.
+  demand_energy_kwh:
+    type: number
+    unit: kWh
+    min: 0
+    description: Demand energy integrated over interval_hours, separate from average power.
+  occupancy_fraction:
+    type: number
+    unit: "1"
+    min: 0
+    max: 1
+    description: Optional relative occupancy without identified-person records.
+  available_generation_kw:
+    type: number
+    unit: kW
+    min: 0
+    description: Available AC renewable power before curtailment, not delivered power.
+  available_generation_energy_kwh:
+    type: number
+    unit: kWh
+    min: 0
+    description: Available renewable energy over the interval, before curtailment.
+  generation_capacity_kw:
+    type: number
+    unit: kW
+    min_exclusive: 0
+    description: Optional AC nameplate rating for generation bounds.
+  irradiance_w_m2:
+    type: number
+    unit: W/m^2
+    min: 0
+    description: Irradiance; specify its plane in source_metadata.
+  air_temperature_c:
+    type: number
+    unit: degC
+    min: -273.15
+    description: Ambient temperature; no invented site-specific upper/lower bound.
+  wind_speed_m_s:
+    type: number
+    unit: m/s
+    min: 0
+    description: Wind speed; specify measurement height in source_metadata.
+  relative_humidity_fraction:
+    type: number
+    unit: "1"
+    min: 0
+    max: 1
+    description: Relative humidity represented as a fraction, never a percentage.
+  forecast_issue_time_utc:
+    type: timestamp
+    description: UTC forecast issuance time, no later than the target timestamp_utc.
+  forecast_target_id:
+    type: string
+    description: Building or renewable asset identifier for the forecast.
+  forecast_target_kind:
+    type: string
+    enum: [building_demand, solar_generation, wind_generation]
+    description: Physical target of an available-power or demand forecast.
+  predicted_power_kw:
+    type: number
+    unit: kW
+    min: 0
+    description: Forecast interval-average demand or available generation.
+  forecast_error_kw:
+    type: number
+    unit: kW
+    description: Realized power minus issued prediction; signed and unavailable before realization.
+  lower_power_kw:
+    type: number
+    unit: kW
+    min: 0
+    description: Optional lower forecast interval bound; record coverage level in source_metadata.
+  upper_power_kw:
+    type: number
+    unit: kW
+    min: 0
+    description: Optional upper forecast interval bound.
+  import_price:
+    type: number
+    unit: "{currency}/kWh"
+    min: 0
+    description: Energy purchase price; initial scenario excludes negative tariffs.
+  export_price:
+    type: number
+    unit: "{currency}/kWh"
+    min: 0
+    description: Energy sale price, at most import_price in the initial scenario.
+  battery_energy_kwh:
+    type: number
+    unit: kWh
+    min: 0
+    description: Stored battery energy at the timestamp boundary, not a power flow.
+  battery_soc:
+    type: number
+    unit: "1"
+    min: 0
+    max: 1
+    description: Stored energy divided by battery capacity.
+  battery_capacity_kwh:
+    type: number
+    unit: kWh
+    min_exclusive: 0
+    description: Optional storage capacity; enables energy/SOC consistency checks.
+  battery_charge_kw:
+    type: number
+    unit: kW
+    min: 0
+    description: Optional interval-average AC charge flow beginning at this boundary.
+  battery_discharge_kw:
+    type: number
+    unit: kW
+    min: 0
+    description: Optional interval-average AC discharge flow; cannot coincide with charging.
+
+record_types:
+  demand:
+    required: [timestamp_utc, interval_hours, building_id, building_load_kw]
+    optional: [demand_energy_kwh, occupancy_fraction]
+    key: [timestamp_utc, building_id]
+    description: One building per interval; campus demand is a separately derived sum.
+  generation:
+    required: [timestamp_utc, interval_hours, asset_id, generation_type, available_generation_kw]
+    optional: [available_generation_energy_kwh, generation_capacity_kw]
+    key: [timestamp_utc, asset_id]
+    description: One shared solar/wind asset per interval, without per-building duplication.
+  weather:
+    required: [timestamp_utc, interval_hours, site_id]
+    optional: [irradiance_w_m2, air_temperature_c, wind_speed_m_s, relative_humidity_fraction]
+    at_least_one: [irradiance_w_m2, air_temperature_c, wind_speed_m_s, relative_humidity_fraction]
+    key: [timestamp_utc, site_id]
+    description: At least one non-null weather observation per site interval.
+  forecast:
+    required: [timestamp_utc, interval_hours, forecast_issue_time_utc, forecast_target_id, forecast_target_kind, predicted_power_kw]
+    optional: [forecast_error_kw, lower_power_kw, upper_power_kw]
+    key: [timestamp_utc, forecast_issue_time_utc, forecast_target_id, forecast_target_kind]
+    description: timestamp_utc is target interval start; historical observations remain separate.
+  price:
+    required: [timestamp_utc, interval_hours, grid_id, import_price, export_price]
+    optional: []
+    key: [timestamp_utc, grid_id]
+    description: Explicit dataset currency, energy-only tariffs; no implicit net-metering assumption.
+  simulation_state:
+    required: [timestamp_utc, asset_id, battery_energy_kwh, battery_soc]
+    optional: [battery_capacity_kwh, interval_hours, battery_charge_kw, battery_discharge_kw]
+    key: [timestamp_utc, asset_id]
+    description: Battery boundary states; optional flows require interval_hours; final boundary may omit flows.
+
+# Mapping guidance only; acquisition source columns remain untouched.
+source_mapping_notes:
+  solar: pv_available_kw maps to available_generation_kw with generation_type solar and a supplied asset_id.
+  wind: wind_available_kw maps to available_generation_kw with generation_type wind and a supplied asset_id.
+  demand: building_load_kw retains its name; building_id and interval_hours must be explicit.
+  forecast: Earlier forecast_issue_time/forecast_valid_time concepts become forecast_issue_time_utc/timestamp_utc.
+  weather: Earlier 'degrees C' is canonically spelled 'degC'; aliases are not accepted without explicit conversion.
+  prices: Replace unresolved currency/kWh with a declared code such as BDT/kWh only after choosing a currency.
+validation_scope: >-
+  Schema, finite values, hourly UTC alignment, duplicates, row-level ranges and
+  relationships only. Full campus coverage, missing intervals, asset-specific
+  SOC/power limits, joint energy balance, source authenticity and forecast
+  calibration require later dataset/physical validation. No power-energy or FX
+  conversion, imputation, resampling, simulator or forecasting is implemented.

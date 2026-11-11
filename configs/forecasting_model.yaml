@@ -1,0 +1,110 @@
+# Part 5 forecasting contract and initial integrated-model settings. Values
+# are configurable research defaults, not tuned hyperparameters.
+version: 1
+status: part_5_7_integrated_model_defaults
+
+data:
+  split_bundle: data/processed/splits_hypothetical_campus_v1
+  sequence_config: configs/forecasting_data.yaml
+  # Supported defaults from the saved one-year synthetic artifact. Keep these
+  # consistent with sequence_config; other lengths require new validated tensors.
+  lookback_hours: 24
+  horizon_hours: 24
+  stride_hours: 1
+  time_zone: UTC
+  require_contiguous_hourly_timestamps: true
+  use_train_fitted_scalers_only: true
+  fit_scalers_on: train
+  transform_validation_test_with_saved_scalers: true
+  selection_partition: validation
+  test_partition_policy: final_evaluation_only
+
+graph:
+  config: configs/forecasting_data.yaml
+  topology_status: assumed_modeling_topology_not_measured
+  node_order: [B01, B02, B03, B04, B05, PV01, W01, BUS01]
+  directed_edge_count: 14
+  edge_weights: null # Edges are unweighted membership; no measured edge weights exist.
+  include_self_loops: false
+  node_attributes: [is_building, is_solar, is_wind, is_bus, capacity_scaled, capacity_known]
+  capacity_scale_kw: 1000 # Hypothetical engineering scale, not a fitted statistic.
+
+features:
+  node_history:
+    columns_by_node_type:
+      building: building_load_kw_scaled
+      solar: available_generation_kw_scaled
+      wind: available_generation_kw_scaled
+    tensor_name: X
+    shape: [batch, lookback, 8, 1]
+    source_units_before_scaling: kW
+    tensor_units_after_scaling: dimensionless
+  global_history:
+    tensor_name: global_X
+    shape: [batch, lookback, 3]
+    columns:
+      - {name: irradiance_w_m2_scaled, source_unit: "W/m^2"}
+      - {name: air_temperature_c_scaled, source_unit: "degC"}
+      - {name: wind_speed_m_s_scaled, source_unit: "m/s"}
+    tensor_units_after_scaling: dimensionless
+  known_future_covariates: []
+  future_realized_observations_as_inputs: false
+
+targets:
+  tensor_name: y
+  columns_by_node_type:
+    building: building_load_kw
+    solar: available_generation_kw
+    wind: available_generation_kw
+  unit: kW
+  shape: [batch, horizon, 8, 1]
+  nodes: [B01, B02, B03, B04, B05, PV01, W01]
+  channels: [power_kw]
+  masked_context_nodes: [BUS01]
+  apply_target_mask_to_loss_and_metrics: true
+  target_scaling: not_selected # If added, fit on training targets only and invert for reports.
+
+model:
+  architecture: gnn_transformer
+  family: GNN-Transformer
+  spatial_encoder: graph_mean_message_passing
+  temporal_encoder: per_node_transformer
+  lookback_hours: 24
+  forecast_horizon_hours: 24
+  hidden_dimension: 64
+  attention_heads: 4
+  layer_counts: {gnn: 2, transformer: 2}
+  target_scope: node_level
+  system_pooling: null
+  gnn_encoder:
+    input_dim: 1
+    hidden_dim: 64
+    num_layers: 2
+    dropout: 0.1
+    activation: relu
+    aggregation: weighted_mean
+    edge_direction: source_to_target
+    self_loop_policy: reject_explicit_use_self_projection
+    isolated_node_policy: self_projection_only
+  transformer_encoder:
+    d_model: 64
+    num_heads: 4
+    num_layers: 2
+    dim_feedforward: 128
+    dropout: 0.1
+    activation: relu
+    max_seq_len: 168
+    positional_encoding: sinusoidal
+    attention_strategy: bidirectional_within_historical_window
+    padding_mask_convention: true_means_padding
+  forecast_head:
+    type: direct_multi_step
+    dropout: 0.1
+  parameter_selection_phase: Part_5.5_5.7_architecture_defaults_only
+
+evaluation:
+  report_units: kW
+  report_by_node: true
+  report_by_target_type: true
+  compare_with_forecasting_baseline: required_in_Part_5.2
+  test_used_for_model_selection: false

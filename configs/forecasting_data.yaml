@@ -1,0 +1,44 @@
+version: 1
+lookback_hours: 24
+horizon_hours: 24
+stride_hours: 1
+time_policy: Hourly UTC; history and complete target horizon must stay in one temporal split.
+tensor_layout:
+  inputs: "[sample, lookback, node, feature] float32"
+  targets: "[sample, horizon, node, target] float32; original kW"
+  global_inputs: "[sample, lookback, weather_feature] float32"
+  edge_index: "[2, directed_edge] int64; PyG-compatible indexing, no PyG dependency"
+  timestamps: "datetime64[ns] interpreted as UTC, never local time"
+node_input_features: [historical_power_scaled]
+node_targets: [power_kw]
+global_features:
+  - {record_type: weather, entity_id: SYNTHETIC_SITE, column: irradiance_w_m2_scaled}
+  - {record_type: weather, entity_id: SYNTHETIC_SITE, column: air_temperature_c_scaled}
+  - {record_type: weather, entity_id: SYNTHETIC_SITE, column: wind_speed_m_s_scaled}
+graph:
+  construction: assumed_shared_bus
+  reference: docs/microgrid_scenario.md — provisional shared campus bus, not real electrical topology
+  bus_id: BUS01
+  bidirectional: true
+  # List order is authoritative for every node axis, mask and edge index.
+  # Ratings repeat hypothetical Part 2.7 assumptions; they are not measurements.
+  capacity_scale_kw: 1000 # Engineering scale only; no statistics fit on any split.
+  nodes:
+    - {id: B01, type: building, record_type: demand, entity_id: B01, input_column: building_load_kw_scaled, target_column: building_load_kw, capacity_kw: 250}
+    - {id: B02, type: building, record_type: demand, entity_id: B02, input_column: building_load_kw_scaled, target_column: building_load_kw, capacity_kw: 300}
+    - {id: B03, type: building, record_type: demand, entity_id: B03, input_column: building_load_kw_scaled, target_column: building_load_kw, capacity_kw: 200}
+    - {id: B04, type: building, record_type: demand, entity_id: B04, input_column: building_load_kw_scaled, target_column: building_load_kw, capacity_kw: 350}
+    - {id: B05, type: building, record_type: demand, entity_id: B05, input_column: building_load_kw_scaled, target_column: building_load_kw, capacity_kw: 250}
+    - {id: PV01, type: solar, record_type: generation, entity_id: PV01, input_column: available_generation_kw_scaled, target_column: available_generation_kw, capacity_kw: 300}
+    - {id: W01, type: wind, record_type: generation, entity_id: W01, input_column: available_generation_kw_scaled, target_column: available_generation_kw, capacity_kw: 150}
+    - {id: BUS01, type: bus, capacity_kw: null}
+mask_policy: >-
+  Bus input/target values are structural zero placeholders with masks false,
+  never measured zero values. Other missing values cause errors, never fills.
+  Broadcast target_mask across sample/horizon axes before any future loss.
+leakage_policy: >-
+  Use existing train-fitted scalers; never fit or select using validation/test.
+  No future realized weather or target observations in inputs. No borrowing
+  context across partitions. Only historical observed columns are supported;
+  future residuals/rewards and forecast-vintage joins are excluded. Preparing
+  test tensors is not permission to tune models against their values.

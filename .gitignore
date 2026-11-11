@@ -1,0 +1,40 @@
+# Python and virtual environments
+__pycache__/
+*.py[cod]
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# Generated data and research artifacts
+/data/raw/*
+/data/processed/*
+/models/*
+/results/*
+!/data/raw/.gitkeep
+!/data/processed/.gitkeep
+!/models/.gitkeep
+!/results/.gitkeep
+
+# Trained checkpoints, including those saved outside models/
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.h5
+*.hdf5
+*.keras
+*.joblib
+
+# Operating system files
+.DS_Store
+Thumbs.db

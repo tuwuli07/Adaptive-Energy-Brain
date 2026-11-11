@@ -1,0 +1,41 @@
+# Conservative defaults. This configuration does not approve or acquire datasets.
+version: 1
+# Explicit source-header -> canonical-header mappings only; never guess by units.
+column_mapping: {}
+profiles:
+  campus_solar:
+    column_mapping: {pv_available_kw: available_generation_kw}
+  campus_wind:
+    column_mapping: {wind_available_kw: available_generation_kw}
+# Naive timestamps require this explicit IANA time zone (or profile override).
+# Aware timestamps retain their instant and are converted to UTC.
+source_timezone: null
+# Non-ISO timestamp formats require an explicit strptime format, e.g. "%d/%m/%Y %H:%M".
+timestamp_format: null
+expected_interval_hours: 1
+duplicates: keep # keep, error, or drop_exact; conflicting key duplicates never removed
+missing:
+  default: keep # keep, error or drop; never implicit zero replacement
+  columns: {}
+  # Explicit per-column examples (not enabled):
+  # building_load_kw: {method: forward_fill, max_gap_hours: 2}
+  # building_load_kw: {method: interpolate, max_gap_hours: 2}
+  # building_load_kw: {method: constant, value: 5, reason: "Documented test assumption"}
+  # Fill numeric columns only. Filling is within entity groups and cannot cross
+  # absent time steps, duplicate timestamps, invalid observations or long gaps.
+  # Interpolation uses future endpoints: use offline only, within a training split.
+outliers:
+  method: iqr # flag only; never clip or delete
+  multiplier: 3
+  min_observations: 8
+conversion_policy: >-
+  Explicit input units are required. Supported dimension-preserving conversions:
+  W/MW to kW, Wh/MWh to kWh, kW/m^2 to W/m^2, K/degF/degrees C to degC,
+  km/h to m/s, percent to fraction, minutes to hours, and same-currency
+  price/MWh to price/kWh. No kW-to-kWh or currency conversion is inferred.
+report_policy: >-
+  Keep row indices as original zero-based input row positions. Audit renames,
+  parsing, UTC conversion, unit conversion, fills and removals with before/after
+  values. Record missing values, duplicates, gaps, invalid values and outliers.
+  Outputs are in memory only; originals are never overwritten. A successful
+  cleaning call does not imply readiness for simulation or schema validation.

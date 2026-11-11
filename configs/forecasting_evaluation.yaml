@@ -1,0 +1,12 @@
+version: 1
+
+# These are evaluation defaults, not model-selection parameters.
+evaluation:
+  batch_size: 64
+  device: auto
+  forecast_horizon_hours: 24
+  seasonal_period_hours: 24
+  representative_window_count: 3
+
+paths:
+  results_dir: results/forecasting_evaluations

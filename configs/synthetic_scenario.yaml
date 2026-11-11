@@ -1,0 +1,83 @@
+# ALL numbers below are hypothetical scenario assumptions, not campus observations.
+version: 1
+scenario_id: hypothetical_campus_v1
+seed: 42
+start_utc: "2026-01-01T00:00:00Z"
+hours: 8760
+campus_timezone: Asia/Dhaka # Scheduling convention only; no campus location asserted.
+currency_code: USD # Artificial tariff denomination; no exchange-rate conversion.
+generate_categories: [demand, solar, wind, weather, grid_prices]
+# If measured weather exists, do not silently condition synthetic models on a
+# different climate. Explicit opt-in permits independent latent weather instead.
+allow_latent_weather: false
+buildings:
+  - {id: B01, base_kw: 100, min_kw: 25, max_kw: 250}
+  - {id: B02, base_kw: 120, min_kw: 30, max_kw: 300}
+  - {id: B03, base_kw: 80, min_kw: 20, max_kw: 200}
+  - {id: B04, base_kw: 150, min_kw: 40, max_kw: 350}
+  - {id: B05, base_kw: 90, min_kw: 25, max_kw: 250}
+demand:
+  night_fraction: 0.4
+  weekend_factor: 0.7
+  seasonal_amplitude: 0.15
+  seasonal_peak_day: 200
+  temperature_reference_c: 22
+  temperature_sensitivity_per_c: 0.015
+  uncertainty_std: 0.06
+  surge_probability: 0.005
+  surge_multiplier: 1.6
+weather:
+  site_id: SYNTHETIC_SITE
+  temperature_mean_c: 24
+  temperature_seasonal_amplitude_c: 7
+  temperature_daily_amplitude_c: 4
+  temperature_noise_std_c: 1
+  temperature_min_c: -10
+  temperature_max_c: 50
+  seasonal_peak_day: 200
+  cloud_mean: 0.75
+  cloud_std: 0.15
+  autocorrelation: 0.85
+  irradiance_peak_w_m2: 950
+  daylight_mean_hours: 12
+  daylight_seasonal_amplitude_hours: 2
+  daylight_peak_day: 172
+  wind_mean_m_s: 6
+  wind_seasonal_amplitude_m_s: 1
+  wind_noise_std_m_s: 1.5
+  wind_max_m_s: 35
+solar:
+  asset_id: PV01
+  capacity_kw: 300
+  reference_irradiance_w_m2: 1000
+  temperature_derating_per_c: 0.004
+wind:
+  asset_id: W01
+  capacity_kw: 150
+  cut_in_m_s: 3
+  rated_m_s: 12
+  cut_out_m_s: 25
+prices:
+  grid_id: GRID01
+  base_import_per_kwh: 0.12
+  peak_import_per_kwh: 0.18
+  export_per_kwh: 0.04
+  peak_start_hour: 17
+  peak_end_hour: 22
+  spike_probability: 0.005
+  spike_multiplier: 4
+  max_import_per_kwh: 1
+# Static assumptions only: no storage dispatch or simulated state is generated.
+battery:
+  asset_id: BAT01
+  capacity_kwh: 500
+  charge_limit_kw: 150
+  discharge_limit_kw: 150
+  charge_efficiency: 0.95
+  discharge_efficiency: 0.95
+  soc_min: 0.1
+  soc_max: 0.9
+  initial_soc: 0.5
+grid:
+  import_limit_kw: 2000 # >= sum of building maximum demand; fallback feasible.
+  export_limit_kw: 500 # Renewables may be curtailed by a future simulator.

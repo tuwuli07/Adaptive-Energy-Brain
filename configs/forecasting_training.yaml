@@ -1,0 +1,22 @@
+# Initial Part 5.8 training defaults; tune using training/validation only.
+version: 1
+training:
+  batch_size: 32
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  max_epochs: 50
+  patience: 8
+  min_delta: 0.0001
+  seed: 42
+  optimizer: adamw
+  loss: masked_mse
+  gradient_clip_norm: 1.0
+  device: auto
+  deterministic: false
+
+paths:
+  results_dir: results/forecasting
+  best_checkpoint_name: best.pt
+  resume_checkpoint_name: last.pt
+  history_filename: training_history.json
+  metadata_filename: experiment.json

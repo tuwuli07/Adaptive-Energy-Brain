@@ -1,0 +1,14 @@
+# Rule-based controller parameters; USD tariff assumptions remain hypothetical.
+version: 1
+parameter_origin: hypothetical_example
+currency_code: USD
+price_aware:
+  low_price_threshold: 0.12 # currency/kWh
+  high_price_threshold: 0.18 # currency/kWh
+  minimum_soc_reserve: 0.2 # SOC fraction
+battery_preserving:
+  preferred_soc_min: 0.3 # Fraction; must remain within simulator SOC bounds.
+  preferred_soc_max: 0.8
+  power_deadband_kw: 5
+  max_charge_power_kw: 50 # Conservative AC-side limits; simulator also constrains.
+  max_discharge_power_kw: 50

@@ -1,0 +1,43 @@
+# EXAMPLE PARAMETERS ONLY: no real campus equipment specifications are available.
+# Values repeat the hypothetical scenario in configs/synthetic_scenario.yaml.
+# This is hardware/policy configuration, not a runnable simulator or dispatch plan.
+version: 1
+parameter_origin: hypothetical_example
+source_reference: configs/synthetic_scenario.yaml
+time_step_hours: 1 # h; battery supports other positive durations. Part 2 data is hourly.
+# A future engine must match this duration to its input intervals; no implicit resampling.
+
+battery:
+  asset_id: BAT01
+  capacity_kwh: 500
+  initial_soc: 0.5 # Fractions, never percentages.
+  soc_min: 0.1
+  soc_max: 0.9
+  charge_limit_kw: 150 # Nonnegative AC-side power; zero disables this direction.
+  discharge_limit_kw: 150
+  charge_efficiency: 0.95 # Ratios in (0, 1].
+  discharge_efficiency: 0.95
+
+grid:
+  asset_id: GRID01
+  import_limit_kw: 2000 # Nonnegative; episode feasibility also depends on demand.
+  export_limit_kw: 500 # Zero is valid and disables export.
+  currency_code: USD # Hypothetical tariff denomination, matching the synthetic data.
+  missing_export_price_handling: error # error, disable_export, or zero_compensation
+  # Missing tariffs are never silently treated as zero. Other policies require
+  # this explicit setting; transactions record any disabled or uncompensated export.
+  allow_negative_prices: false # Opt in explicitly to market-price credits/payments.
+
+renewable_curtailment:
+  enabled: true
+  allocation: proportional # Only supported allocation in the initial design.
+  # If disabled, future dispatch must not hide surplus by curtailing renewables.
+
+unserved_load:
+  handling: error # error: fail atomically; record: explicitly report unmet campus load.
+  # record uses all feasible renewable/battery/grid supply first. No building
+  # shedding priorities, monetary penalty or fictitious supply is inferred.
+
+# Episode duration, tariffs/currency, terminal SOC treatment and numeric
+# tolerances remain separate future simulator/episode configuration decisions.
+# Valid hardware configuration alone does not establish feasible episode data.

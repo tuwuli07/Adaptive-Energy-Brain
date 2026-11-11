@@ -1,0 +1,9 @@
+# Economic assumptions only; these are NOT measured costs or calibrated aging.
+version: 1
+currency_code: USD
+parameter_origin: hypothetical_example
+# AC throughput = charge energy + discharge energy. A full charge/discharge
+# counts both legs; this coefficient is per kWh of that sum, not per cycle.
+battery_degradation_per_kwh_throughput: 0.02
+# Optional reliability accounting cost, not a reward or validated value of lost load.
+unserved_demand_per_kwh: 0.0

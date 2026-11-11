@@ -1,0 +1,29 @@
+version: 1
+fractions: {train: 0.70, validation: 0.15, test: 0.15}
+allocation: floor train and validation counts from unique hourly UTC timestamps; test gets remainder
+alignment: Require identical, complete hourly timelines for every source/entity.
+scaling:
+  method: standard
+  scope: source_and_entity
+  variance_ddof: 0
+  constant_feature_scale: 1
+  # Explicit observed columns only; no automatic selection of numeric targets,
+  # forecast residuals, identifiers, rewards or future-derived values.
+  features:
+    demand: [building_load_kw]
+    generation: [available_generation_kw]
+    weather: [irradiance_w_m2, air_temperature_c, wind_speed_m_s]
+    price: [import_price, export_price]
+  output_suffix: _scaled
+leakage_policy: >-
+  Fit scaling on training rows only. Do not refit or clip validation/test values.
+  Retain original physical-unit columns. Reject known pre-split interpolation.
+  Build sequence windows separately within each partition; input observations
+  must precede all target timestamps. No cross-boundary windows or automatic
+  lag/rolling features. Upstream unreported transformations cannot be audited.
+test_policy: >-
+  Test is a held-out final evaluation set. Do not use it for model selection,
+  tuning, imputation fitting or preprocessing fitting. Separate files, stored
+  hashes and no-overwrite APIs detect accidental changes; they do not prevent
+  deliberate external edits. Validation supports development; test stays sealed
+  by workflow until final evaluation. No model development is performed here.

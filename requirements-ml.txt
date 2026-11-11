@@ -1,0 +1,2 @@
+# Local development: CPU-only PyTorch. Keep core project requirements separate.
+torch==2.7.0+cpu

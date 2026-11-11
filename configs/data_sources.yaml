@@ -1,0 +1,90 @@
+# Source-selection placeholders, not approved or measured datasets.
+# Pending entries are skipped without network access or filesystem writes.
+# Local paths, once selected, are relative to this configuration directory.
+# To enable acquisition: select and review a CSV source, document its license,
+# time conventions and original columns/units, then set status: verified.
+# For type: http, set a verified download_url and local_path: null.
+# For type: local_csv, set local_path and download_url: null.
+# Expected columns below are provisional requirements, not claims about files.
+# Acquisition preserves bytes; it does not enforce or transform column schemas.
+# Optional sha256 may hold a publisher-provided 64-character SHA-256 digest.
+sources:
+  - id: campus_solar
+    category: solar
+    description: Solar generation / irradiance; direct available PV power preferred initially.
+    type: local_csv
+    local_path: null
+    download_url: null
+    filename: campus_solar.csv
+    expected_columns: [timestamp_utc, pv_available_kw]
+    units: {timestamp_utc: "ISO 8601 UTC datetime", pv_available_kw: "kW"}
+    time_resolution: hourly
+    time_zone: null
+    license: null
+    status: pending
+
+  - id: campus_wind
+    category: wind
+    description: Wind generation / wind speed; direct available wind power preferred initially.
+    type: local_csv
+    local_path: null
+    download_url: null
+    filename: campus_wind.csv
+    expected_columns: [timestamp_utc, wind_available_kw]
+    units: {timestamp_utc: "ISO 8601 UTC datetime", wind_available_kw: "kW"}
+    time_resolution: hourly
+    time_zone: null
+    license: null
+    status: pending
+
+  - id: campus_demand
+    category: demand
+    description: Electricity demand for the five provisional buildings; no real campus data selected.
+    type: local_csv
+    local_path: null
+    download_url: null
+    filename: campus_demand.csv
+    expected_columns: [timestamp_utc, building_id, building_load_kw]
+    units:
+      timestamp_utc: ISO 8601 UTC datetime
+      building_id: identifier (no physical unit)
+      building_load_kw: kW
+    time_resolution: hourly
+    time_zone: null
+    license: null
+    status: pending
+
+  - id: campus_weather
+    category: weather
+    description: Optional weather covariates; measurement heights and irradiance plane remain unresolved.
+    type: local_csv
+    local_path: null
+    download_url: null
+    filename: campus_weather.csv
+    expected_columns: [timestamp_utc, irradiance_w_m2, air_temperature_c, wind_speed_m_s]
+    units:
+      timestamp_utc: ISO 8601 UTC datetime
+      irradiance_w_m2: W/m^2
+      air_temperature_c: degrees C
+      wind_speed_m_s: m/s
+    time_resolution: hourly
+    time_zone: null
+    license: null
+    status: pending
+
+  - id: campus_grid_prices
+    category: grid_prices
+    description: Grid electricity import/export prices; currency and tariff source not yet selected.
+    type: local_csv
+    local_path: null
+    download_url: null
+    filename: campus_grid_prices.csv
+    expected_columns: [timestamp_utc, import_price, export_price]
+    units:
+      timestamp_utc: ISO 8601 UTC datetime
+      import_price: currency/kWh (currency unresolved)
+      export_price: currency/kWh (currency unresolved)
+    time_resolution: hourly
+    time_zone: null
+    license: null
+    status: pending
