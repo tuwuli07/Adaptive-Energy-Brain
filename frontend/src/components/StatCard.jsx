@@ -12,7 +12,7 @@ export default function StatCard({
   color = 'brand',
 }) {
   const colorMap = {
-    brand: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400',
+    brand: 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400',
     amber: 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400',
     blue: 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400',
     purple: 'bg-purple-50 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400',
@@ -53,7 +53,7 @@ export default function StatCard({
           {trend && (
             <span className={`font-semibold px-2 py-0.5 rounded-full ${
               trendPositive
-                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                ? 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
                 : 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
             }`}>
               {trend}

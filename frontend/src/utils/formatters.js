@@ -28,6 +28,14 @@ export function formatEnergy(valKwh) {
   return `${valKwh.toFixed(1)} kWh`;
 }
 
+export function formatPower(valKw) {
+  if (valKw === null || valKw === undefined || isNaN(valKw)) return '0.0 kW';
+  if (Math.abs(valKw) >= 1000) {
+    return `${(valKw / 1000).toFixed(2)} MW`;
+  }
+  return `${valKw.toFixed(1)} kW`;
+}
+
 export function formatPercent(val) {
   if (val === null || val === undefined || isNaN(val)) return '0.00%';
   const prefix = val > 0 ? '+' : '';

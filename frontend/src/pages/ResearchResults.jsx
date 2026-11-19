@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import {
   FileText,
@@ -37,35 +38,44 @@ export default function ResearchResults() {
   if (loading || !researchData) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      <nav aria-label="Study tools" className="study-tools surface">
+        <div><span className="eyebrow">STUDY & METHODS</span><p>Explore the evidence behind the energy insights.</p></div>
+        <div className="flex flex-wrap gap-2">
+          <Link className="button-secondary" to="/comparison">Compare strategies</Link>
+          <Link className="button-secondary" to="/risk">Risk & reliability</Link>
+          <Link className="button-secondary" to="/explorer">Scenario explorer</Link>
+          <Link className="button-secondary" to="/about">About the project</Link>
+        </div>
+      </nav>
       <SectionHeader
         title="Scientific Research Findings & Post-Evaluation Audit"
-        subtitle="Authoritative outcomes from the Phase 8.5 one-shot held-out test evaluation across 1,313 hourly decision steps."
-        badge="Phase 8.5 Post-Evaluation Audit"
+        subtitle="Explore the findings and limitations of the simulated campus study."
+        badge="Simulation study"
       />
 
       {/* Audit Banner */}
-      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="p-2 rounded-xl bg-emerald-500 text-white shrink-0">
+          <div className="p-2 rounded-xl bg-blue-500 text-white shrink-0">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-emerald-900 dark:text-emerald-200">
+              <span className="font-bold text-sm text-blue-900 dark:text-blue-200">
                 Independent Post-Evaluation Audit Verdict: PASS
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[10px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 text-[10px] font-bold">
                 24/24 SHA-256 Verified
               </span>
             </div>
-            <p className="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed">
+            <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
               All 1,313-step hourly trajectories independently recomputed within floating-point tolerance ($&lt;10^{'{ -10 }' }$). Zero data leakage, zero retries, zero unhandled solver fallbacks, and zero physical violations.
             </p>
           </div>
@@ -118,7 +128,7 @@ export default function ResearchResults() {
         {/* Finding 1: The $5.18 Marginal Advantage & Throughput Identity */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm space-y-3">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
             <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">
               GNN-MPC vs Seasonal MPC: The $5.18 Mechanism
             </h3>

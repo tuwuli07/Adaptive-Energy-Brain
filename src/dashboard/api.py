@@ -8,13 +8,24 @@ Built using standard library http.server for zero external runtime dependencies.
 import csv
 import json
 import logging
+import os
+from email.parser import BytesParser
+from email.policy import default as email_policy
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 import socketserver
 import sys
 from urllib.parse import urlparse, parse_qs
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 TEST_RESULTS_DIR = ROOT / "results" / "part8_comparative_benchmark" / "test_evaluation"
 VAL_RESULTS_DIR = ROOT / "results" / "part8_comparative_benchmark"
 REGISTRY_PATH = ROOT / "configs" / "controller_registry.json"
@@ -113,6 +124,10 @@ class ResearchAPIDataSource:
 
 DATA_SOURCE = ResearchAPIDataSource()
 
+from src.data.user_datasets import DatasetStore, DatasetError, MAX_BYTES
+
+USER_DATASETS = DatasetStore()
+
 
 class APIRequestHandler(BaseHTTPRequestHandler):
     """Handles read-only REST API requests with CORS and query parameters."""
@@ -122,7 +137,7 @@ class APIRequestHandler(BaseHTTPRequestHandler):
 
     def send_cors_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
     def do_OPTIONS(self):
@@ -151,7 +166,9 @@ class APIRequestHandler(BaseHTTPRequestHandler):
         params = parse_qs(parsed.query)
 
         try:
-            if path in ("", "/api", "/api/health"):
+            if path.startswith("/api/datasets"):
+                self.handle_datasets(path)
+            elif path in ("", "/api", "/api/health"):
                 self.handle_health()
             elif path == "/api/overview":
                 self.handle_overview()
@@ -173,6 +190,8 @@ class APIRequestHandler(BaseHTTPRequestHandler):
                 self.handle_adaptive_results()
             elif path == "/api/adaptive/trajectory":
                 self.handle_adaptive_trajectory()
+            elif path == "/api/assistant/status":
+                self.handle_assistant_status()
             elif path == "/api/simulations/export":
                 self.handle_export(params)
             else:
@@ -180,6 +199,129 @@ class APIRequestHandler(BaseHTTPRequestHandler):
         except Exception as e:
             logger.exception("Error handling request")
             self.send_json({"error": str(e), "path": path}, status=500)
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+        path = parsed.path.rstrip("/")
+
+        try:
+            if path.startswith("/api/datasets"):
+                self.handle_datasets(path, write=True)
+            elif path == "/api/assistant/chat":
+                self.handle_assistant_chat()
+            else:
+                self.send_json({"error": "Endpoint not found", "path": path}, status=404)
+        except Exception as e:
+            logger.exception("Error handling POST request")
+            self.send_json({"error": str(e), "path": path}, status=500)
+
+    def handle_datasets(self, path, write=False):
+        """Separate bounded upload API; no research files are ever written."""
+        try:
+            origin = self.headers.get("Origin")
+            allowed = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8000", "http://127.0.0.1:8000"}
+            allowed.update(x.strip() for x in os.environ.get("ENERGY_DATASET_ORIGINS", "").split(",") if x.strip())
+            if origin and origin not in allowed:
+                raise DatasetError("This website is not allowed to access uploaded datasets.", 403)
+            if self.headers.get("Sec-Fetch-Site") == "cross-site":
+                raise DatasetError("Cross-site dataset access is not allowed.", 403)
+            parts = path.split("/")
+            if not write:
+                if path == "/api/datasets":
+                    self.send_json({"datasets": USER_DATASETS.list(), "storage": USER_DATASETS.info()})
+                elif len(parts) == 4:
+                    self.send_json(USER_DATASETS.get(parts[3]))
+                elif len(parts) == 5 and parts[4] == "analysis":
+                    self.send_json(USER_DATASETS.analysis(parts[3]))
+                else:
+                    raise DatasetError("Dataset endpoint not found.", 404)
+                return
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+            except ValueError as exc:
+                raise DatasetError("Invalid upload length.") from exc
+            limit = MAX_BYTES + 65536 if path == "/api/datasets/upload" else 16384
+            if length <= 0 or length > limit or self.headers.get("Transfer-Encoding"):
+                self.close_connection = True
+                raise DatasetError("Upload exceeds the size limit or has an invalid length.", 413)
+            self.connection.settimeout(30)
+            raw = self.rfile.read(length)
+            if len(raw) != length:
+                raise DatasetError("The upload was interrupted. Please try again.")
+            if path == "/api/datasets/upload":
+                content_type = self.headers.get("Content-Type", "")
+                if not content_type.startswith("multipart/form-data;") or len(content_type) > 500:
+                    raise DatasetError("Upload the CSV as multipart form data.")
+                message = BytesParser(policy=email_policy).parsebytes(("Content-Type: " + content_type + "\r\nMIME-Version: 1.0\r\n\r\n").encode() + raw)
+                parts = list(message.iter_parts())
+                if message.defects or len(parts) != 1 or parts[0].get_param("name", header="content-disposition") != "file":
+                    raise DatasetError("Upload exactly one CSV in the file field.")
+                file_part = parts[0]
+                result = USER_DATASETS.upload(file_part.get_payload(decode=True) or b"", file_part.get_filename() or "")
+                self.send_json(result, 201)
+            elif len(parts) == 5 and parts[4] == "mapping":
+                try:
+                    payload = json.loads(raw)
+                except (ValueError, UnicodeError) as exc:
+                    raise DatasetError("The column mapping is not valid JSON.") from exc
+                self.send_json(USER_DATASETS.apply_mapping(parts[3], payload))
+            else:
+                raise DatasetError("Dataset endpoint not found.", 404)
+        except DatasetError as exc:
+            self.send_json({"error": str(exc), "validation": exc.details}, exc.status)
+        except (OSError, ValueError):
+            logger.exception("Dataset operation failed")
+            self.send_json({"error": "Dataset storage is unavailable. Please retry or check the configured storage volume."}, 503)
+
+    def handle_assistant_status(self):
+        from src.assistant.energy_assistant import assistant_status
+        from src.assistant.gemini_service import GEMINI_SERVICE
+        from src.assistant.mcp_server import list_registered_tools
+        from src.assistant.rag import RAG_PIPELINE
+
+        rag_count = 0
+        try:
+            rag_count = RAG_PIPELINE.get_collection().count()
+        except Exception:
+            pass
+
+        self.send_json({
+            **assistant_status(),
+            "status": "online",
+            "gemini_configured": GEMINI_SERVICE.is_configured(),
+            "gemini_model": GEMINI_SERVICE.model_name,
+            "rag_chunks_indexed": rag_count,
+            "mcp_tools_available": len(list_registered_tools()),
+        })
+
+    def handle_assistant_chat(self):
+        content_len = int(self.headers.get("Content-Length", 0))
+        if content_len <= 0 or content_len > 100000:
+            self.send_json({"error": "Invalid Content-Length"}, status=400)
+            return
+
+        raw_body = self.rfile.read(content_len).decode("utf-8")
+        try:
+            data = json.loads(raw_body)
+        except Exception as e:
+            self.send_json({"error": "Malformed JSON payload", "detail": str(e)}, status=400)
+            return
+
+        if not isinstance(data, dict) or not isinstance(data.get("history", []), list):
+            self.send_json({"error": "Provide a question and a valid conversation history."}, status=400)
+            return
+        message = data.get("message", "")
+        history = data.get("history", [])
+        summary = None
+        if data.get("dataset_id"):
+            try:
+                summary = USER_DATASETS.analysis(data["dataset_id"])["summary"]
+            except DatasetError as exc:
+                self.send_json({"error": str(exc)}, status=exc.status)
+                return
+        from src.assistant.energy_assistant import answer_energy_query
+        response = answer_energy_query(message=message, history=history, provider=data.get("provider"), model=data.get("model"), dataset_summary=summary, research=data.get("research") is True)
+        self.send_json(response, status=200)
 
     def handle_health(self):
         metadata = load_json(TEST_RESULTS_DIR / "test_evaluation_metadata.json") or {}
@@ -675,7 +817,7 @@ class APIRequestHandler(BaseHTTPRequestHandler):
         self.send_csv(out.getvalue(), f"{controller_id}_{partition}_hourly_dispatch.csv")
 
 
-def run_api_server(port: int = 8000, host: str = "0.0.0.0"):
+def run_api_server(port: int = 8000, host: str = "127.0.0.1"):
     server_address = (host, port)
     class ThreadingServer(socketserver.ThreadingMixIn, HTTPServer):
         daemon_threads = True

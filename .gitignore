@@ -18,10 +18,12 @@ htmlcov/
 # Generated data and research artifacts
 /data/raw/*
 /data/processed/*
+/data/rag_index/*
 /models/*
 /results/*
 !/data/raw/.gitkeep
 !/data/processed/.gitkeep
+!/data/rag_index/.gitkeep
 !/models/.gitkeep
 !/results/.gitkeep
 

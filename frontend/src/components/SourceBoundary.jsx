@@ -1,0 +1,25 @@
+import React, { lazy, Suspense } from 'react';
+import { useLocation, Link, Outlet } from 'react-router-dom';
+import { useDataSource } from '../context/DataSourceContext';
+import { useAssistant } from './FloatingAssistant';
+import { sourcePolicy } from '../utils/dataPolicy';
+const DatasetAnalytics = lazy(() => import('./DatasetAnalytics'));
+
+export function Skeleton() {
+  return <div className="space-y-5" role="status" aria-label="Loading energy data"><div className="skeleton h-32" /><div className="grid sm:grid-cols-2 gap-5"><div className="skeleton h-64" /><div className="skeleton h-64" /></div><span className="sr-only">Loading energy data...</span></div>;
+}
+export default function SourceBoundary() {
+  const { source, setSource, loading, error, analysis, activeMeta } = useDataSource();
+  const openAssistant = useAssistant();
+  const { pathname } = useLocation();
+  const policy = sourcePolicy(source, pathname);
+  if (policy === 'standard') return <>{['/research', '/comparison', '/risk'].includes(pathname) && <div className="notice mb-6"><strong>Research reference.</strong> These published results come from a synthetic case study. They are not measurements or predictions for your site.</div>}<Outlet /></>;
+  if (policy === 'empty') return <div className="space-y-7"><section className="overview-heading"><div><span className="eyebrow">ENERGY INTELLIGENCE / YOUR WORKSPACE</span><h1>Understand your energy.<br /><span>Make informed decisions.</span></h1><p>One workspace for homes, buildings, businesses, renewable communities, and microgrids. Start with your measurements to explore demand, clean generation, and storage.</p></div><Link to="/data" className="button-primary">Add your energy data</Link></section><div className="surface p-7 sm:p-10 space-y-6"><h2>{pathname === '/' ? 'Your energy overview starts here.' : 'Choose your energy data to continue.'}</h2><p className="max-w-2xl caption">Upload a CSV and map its measurements. Your dashboard will use your actual records. No sample readings, equipment specifications, or savings are substituted.</p><div className="grid sm:grid-cols-3 gap-7"><div><span className="eyebrow">01 / CONNECT</span><h2 className="mt-3">Bring your data</h2><p className="caption mt-2">Import time-stamped demand, solar, wind, or grid measurements.</p></div><div><span className="eyebrow">02 / UNDERSTAND</span><h2 className="mt-3">See the patterns</h2><p className="caption mt-2">Explore consumption, generation, peak demand, and data quality.</p></div><div><span className="eyebrow">03 / ASK</span><h2 className="mt-3">Get clear explanations</h2><p className="caption mt-2">Use the floating assistant with local Ollama or your configured cloud provider.</p></div></div><div className="flex flex-wrap gap-3"><Link className="button-primary" to="/data">Upload & manage data</Link><button className="button-secondary" onClick={openAssistant}>Ask energy assistant</button></div></div><div className="notice">{pathname === '/forecasting' || pathname === '/adaptive' ? 'Forecasting and control require compatible model inputs and validated equipment configuration. An arbitrary CSV is not enough to run the existing research models.' : 'No data selected. Upload and activate a dataset to see your energy insights.'}</div></div>;
+  if (loading) return <Skeleton />;
+  if (error || !analysis) return <div className="surface p-8 space-y-4" role="alert"><h1>Uploaded data is unavailable</h1><p>{error || 'This dataset could not be loaded. No other data is substituted.'}</p><Link className="button-primary" to="/data">Manage my data</Link><button className="button-secondary ml-3" onClick={() => setSource('none')}>Clear selection</button></div>;
+  if (policy === 'unsupported') return <div className="surface p-8 space-y-5"><span className="eyebrow">MY UPLOADED DATA</span><h1>This feature needs compatible model inputs</h1><p className="max-w-2xl">{analysis.compatibility.explanation}</p><p>Forecasting and control need compatible model inputs and equipment configuration. Your uploaded data supports descriptive analysis and assistant explanations; it does not change the published research results.</p><div className="flex flex-wrap gap-3"><Link className="button-primary" to="/energy">Explore my energy data</Link><button className="button-secondary" onClick={() => setSource('none')}>Choose another dataset</button></div><details className="advanced"><summary>Model compatibility checks</summary><Compatibility checks={analysis.compatibility.checks} /></details></div>;
+  return <Suspense fallback={<Skeleton />}><DatasetAnalytics analysis={analysis} name={activeMeta?.name} mode={pathname} /></Suspense>;
+}
+export function Compatibility({ checks = [] }) {
+  return <dl className="divide-y divide-slate-200 dark:divide-slate-700">{checks.map(check => <div key={check.name} className="py-3 grid sm:grid-cols-[180px_1fr] gap-2"><dt className="font-medium">{check.name}<span className="block text-xs text-slate-500">{check.status.replaceAll('_', ' ')}</span></dt><dd className="text-sm text-slate-500 dark:text-slate-400">{check.detail}</dd></div>)}</dl>;
+}

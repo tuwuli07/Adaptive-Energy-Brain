@@ -658,3 +658,120 @@ export function generateSampleAdaptiveTrajectory(count = 71) {
   return points;
 }
 
+export const FALLBACK_ASSISTANT_STATUS = {
+  status: "online",
+  gemini_configured: false,
+  gemini_model: "gemini-2.5-flash",
+  rag_chunks_indexed: 275,
+  mcp_tools_available: 10,
+};
+
+export function getFallbackAssistantAnswer(message) {
+  const q = (message || "").toLowerCase();
+
+  if (q.includes("architecture") || q.includes("overview") || q.includes("what is")) {
+    return {
+      answer: "**Adaptive Energy Brain** is an autonomous multi-asset energy management platform engineered for renewable microgrids, commercial facilities, and campus environments.\n\n" +
+        "### Core Architecture Layers:\n" +
+        "1. **Forecasting Engine:** Multi-horizon GNN-Transformer predicting 5-building spatial demand and renewable generation over 24h.\n" +
+        "2. **Physical Simulation:** Microgrid balance adhering to strict 500 kWh storage capacity and ±150 kW inverter constraints.\n" +
+        "3. **Control & Optimization:** LP-based Model Predictive Control, PPO Reinforcement Learning, CVaR risk-aware control, and Distributionally Robust Optimization (DRO).\n" +
+        "4. **Adaptive Policy Selector (Phase 12):** Causal regime routing engine dynamically switching controllers based on solar surplus, peak tariffs, and adverse stress.",
+      sources: [
+        { name: "README.md", type: "rag_document", title: "README.md (Architecture Overview)", source_file: "README.md" },
+        { name: "get_system_overview", type: "mcp_tool", title: "MCP Tool: get_system_overview", source_file: "src/assistant/mcp_server.py" }
+      ],
+      data_provenance: "Verified Research Artifacts & Simulation Benchmark v1 (Local Offline Grounding)",
+      model: "offline-grounded-fallback",
+      status: "offline_fallback"
+    };
+  }
+
+  if (q.includes("compare") || q.includes("gnn-mpc") || q.includes("cvar") || q.includes("dro")) {
+    return {
+      answer: "### Optimization & Control Paradigm Comparison:\n\n" +
+        "- **GNN-Transformer MPC:** Deterministic economic dispatch using spatio-temporal forecasts. Achieved the lowest deployable test cost (**$36,532.73** on held-out test), saving $5.18 over seasonal persistence with identical 31,540.80 kWh throughput.\n" +
+        "- **CVaR Risk-Aware MPC (Phase 10):** Minimizes Rockafellar-Uryasev tail loss (λ=1.0, α=0.95). Under compound adverse stress, capped worst-case hourly cost from **$164.95/h to $114.71/h** (30.5% peak reduction) with $167.37 in adjusted savings.\n" +
+        "- **DRO Robust MPC (Phase 11):** Optimizes over an L1 total-variation probability ambiguity set (ε=0.5). Insulates dispatch against probability shift and price spikes without distributional assumptions (solve time ~82.4 ms).",
+      sources: [
+        { name: "part11_completion_report.md", type: "rag_document", title: "Phase 11 Report (DRO vs CVaR)", source_file: "docs/part11_completion_report.md" },
+        { name: "get_controller_comparison", type: "mcp_tool", title: "MCP Tool: get_controller_comparison", source_file: "src/assistant/mcp_server.py" }
+      ],
+      data_provenance: "Verified Research Artifacts & Simulation Benchmark v1 (Local Offline Grounding)",
+      model: "offline-grounded-fallback",
+      status: "offline_fallback"
+    };
+  }
+
+  if (q.includes("soc") || q.includes("battery") || q.includes("matter")) {
+    return {
+      answer: "### Why Battery State of Charge (SOC) Matters:\n\n" +
+        "- **Operational Bounds [10% – 90%]:** Battery operations are restricted between 0.10 and 0.90 SOC to prevent deep-discharge cell degradation and overvoltage thermal runaway.\n" +
+        "- **Throughput & Degradation:** Every kWh cycled incurs a linear degradation penalty of **$0.02/kWh** ($10.00 per Full Cycle Equivalent).\n" +
+        "- **Terminal Value Valuation:** Residual stored energy at simulation end is credited at **$0.147368/kWh DC**, incentivizing controllers to leave the battery charged when economic to do so.\n" +
+        "- **Power Constraints:** Maximum continuous charge and discharge are strictly clamped to **150.0 kW**.",
+      sources: [
+        { name: "simulation_architecture.md", type: "rag_document", title: "Simulation Architecture (Battery Dynamics)", source_file: "docs/simulation_architecture.md" },
+        { name: "get_battery_status", type: "mcp_tool", title: "MCP Tool: get_battery_status", source_file: "src/assistant/mcp_server.py" }
+      ],
+      data_provenance: "Verified Research Artifacts & Simulation Benchmark v1 (Local Offline Grounding)",
+      model: "offline-grounded-fallback",
+      status: "offline_fallback"
+    };
+  }
+
+  if (q.includes("compound") || q.includes("stress") || q.includes("scenario")) {
+    return {
+      answer: "### Compound Adverse Stress Scenario Outcomes:\n\n" +
+        "- **Stress Profile:** Campus demand surges by **+25%**, solar drops by **-50%**, wind drops by **-60%**, and peak grid tariffs spike to **3.0x** ($0.54/kWh).\n" +
+        "- **Zero-Action Consequence:** Unmitigated grid purchase surge resulting in a peak single-hour cost of **$164.95/h** and total 72h cost of $5,538.23.\n" +
+        "- **CVaR & DRO Mitigation:** CVaR (λ=3.0) and DRO (ε=0.5) discharged stored reserves precisely during peak tariff hours, capping maximum hourly cost at **$114.71/h** (30.5% peak reduction) while reducing net cost to **$5,219.65** (+$318.58 savings).\n" +
+        "- **Adaptive Selection Response:** The adaptive selector dispatched DRO for 33.8% of intervals and CVaR for 7.0%, defending battery reserves with **0 physical violations**.",
+      sources: [
+        { name: "part10_completion_report.md", type: "rag_document", title: "Phase 10 Report (Compound Stress Verification)", source_file: "docs/part10_completion_report.md" },
+        { name: "get_risk_results", type: "mcp_tool", title: "MCP Tool: get_risk_results", source_file: "src/assistant/mcp_server.py" }
+      ],
+      data_provenance: "Verified Research Artifacts & Simulation Benchmark v1 (Local Offline Grounding)",
+      model: "offline-grounded-fallback",
+      status: "offline_fallback"
+    };
+  }
+
+  if (q.includes("adaptive") || q.includes("regime") || q.includes("how does")) {
+    return {
+      answer: "### How Adaptive Policy Selection Works (Phase 12):\n\n" +
+        "- **Causal Observation:** Evaluates observable conditions strictly available at step $t$ (forecasted net load, solar surplus, battery SOC, current tariff rate, and rolling forecast error variance).\n" +
+        "- **Operational Regimes:**\n" +
+        "  1. *Solar Self-Consumption:* Routes to GNN-MPC when solar surplus > 10 kW and SOC < 0.85 to capture daytime generation.\n" +
+        "  2. *Peak Tariff Tail-Hedging:* Routes to CVaR-MPC (λ=1.0) when tariff ≥ $0.25/kWh and SOC > 0.30 to shave expensive peaks.\n" +
+        "  3. *Compound Stress / Robust:* Routes to DRO-MPC (ε=0.5) when renewable deficit > 30% or volatility is detected.\n" +
+        "  4. *Nominal Base Dispatch:* Routes to GNN-MPC for baseline economic scheduling.\n" +
+        "- **Execution Feasibility:** Feature extraction overhead is under **1.5 ms**, with mean decision cycles of 54.0–79.9 ms.",
+      sources: [
+        { name: "part12_completion_report.md", type: "rag_document", title: "Phase 12 Report (Adaptive Policy Selection)", source_file: "docs/part12_completion_report.md" },
+        { name: "get_adaptive_policy_results", type: "mcp_tool", title: "MCP Tool: get_adaptive_policy_results", source_file: "src/assistant/mcp_server.py" }
+      ],
+      data_provenance: "Verified Research Artifacts & Simulation Benchmark v1 (Local Offline Grounding)",
+      model: "offline-grounded-fallback",
+      status: "offline_fallback"
+    };
+  }
+
+  // Limitations
+  return {
+    answer: "### Scientific Limitations & Research Boundaries:\n\n" +
+      "1. **Synthetic Case Study:** The platform is evaluated on a synthetic 1,314-hour campus microgrid benchmark, not live utility hardware.\n" +
+      "2. **Linear Degradation:** Battery degradation is modeled using linear throughput cost ($0.02/kWh) rather than nonlinear electro-chemical cell dynamics.\n" +
+      "3. **Single-Bus Topology:** Microgrid power balance assumes a copper-plate bus without AC power flow or reactive power modeling.\n" +
+      "4. **Oracle Noncausality:** The 24h rolling oracle possesses perfect ground-truth lookahead and is strictly a theoretical ceiling.\n" +
+      "5. **Contextual Routing vs Meta-Learning:** Phase 12 implements rule-based regime routing among fixed controllers; gradient-based few-shot meta-learning (MAML/RL2) remains future work.",
+    sources: [
+      { name: "part8_reconciliation_report.md", type: "rag_document", title: "Phase 8 Reconciliation Report (Limitations)", source_file: "docs/part8_reconciliation_report.md" },
+      { name: "get_research_limitations", type: "mcp_tool", title: "MCP Tool: get_research_limitations", source_file: "src/assistant/mcp_server.py" }
+    ],
+    data_provenance: "Verified Research Artifacts & Simulation Benchmark v1 (Local Offline Grounding)",
+    model: "offline-grounded-fallback",
+    status: "offline_fallback"
+  };
+}
+

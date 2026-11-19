@@ -2,35 +2,79 @@
 
 ## Current phase
 
-Phase 12 (Adaptive Policy Selection & Contextual Regime Routing) is COMPLETE and VERIFIED. Phase 11 (DRO), Phase 10 (CVaR), Phase 9 (React Frontend), and Part 8 (Unified Comparative Benchmark & Held-Out Test Evaluation) remain authoritative, frozen, and audited.
+Phase 13.5 (Complete UI/UX Redesign: Modern Energy Intelligence Platform) is COMPLETE and VERIFIED. Phase 13 (Gemini AI Assistant, RAG, & MCP), Phase 12 (Adaptive Policy Selection), Phase 11 (DRO), Phase 10 (CVaR), Phase 9 (React Frontend), and Part 8 (Unified Comparative Benchmark & Held-Out Test Evaluation) remain authoritative, frozen, and audited.
 
-### 1. Phase 12 Completed Outcomes:
-- **Phase 11 Verification Gaps Resolved:**
-  - Added 35 parameterized primal-dual test cases to `tests/test_dro_math.py`, confirming exact match ($< 10^{-7}$) against an independently solved primal LP across 5 distributions and 7 ambiguity radii $\epsilon \in [0.0, 2.0]$.
-  - Confirmed nominal recovery at $\epsilon=0$ ($2,669.39 normal, $5,219.65 compound).
-  - Confirmed Phase 8.5 test evaluation hashes remain byte-identical: `305B769D...` (JSON) and `8E12C074...` (CSV).
-- **Causal Adaptive Policy Selector (`src/control/adaptive_policy_selector.py`):**
-  - Inherits from `BaselineController`. Extracts strictly causal features at decision step $t$ from `AgentObservation`.
-  - Maps operating regimes to specialized controllers: Solar Self-Consumption (`mpc_gnn_transformer`), Compound Stress / Robustness (`mpc_dro_robust`), Peak Tariff Tail-Hedging (`mpc_cvar_balanced`), and Nominal Base Dispatch (`mpc_gnn_transformer`).
-  - Implements multi-tier fallback cascade: Target Controller $\to$ GNN-MPC $\to$ Seasonal MPC $\to$ Zero-Action.
-  - Enforces inverter power bounds strictly clamped to $\pm 150.0$ kW.
-- **Scientific Framing & Classification:**
-  - Accurately cataloged as **Adaptive Policy Selection (Contextual Regime Routing)**, distinguishing it from gradient-based meta-learning (MAML/RL²), which is identified as future multi-task research.
-- **Experimental Verification (`scripts/run_adaptive_experiments.py`):**
-  - Evaluated 6 controllers across 5 conditions on 72-hour development slice.
-  - Under compound stress, demonstrated dynamic policy switching: 33.8% DRO-MPC, 59.2% GNN-MPC, 7.0% CVaR-MPC, with 0 physical violations.
-  - Low computational overhead: $< 1.5$ ms feature extraction, ~54–80 ms decision cycle.
-- **Full-Stack Application Integration:**
-  - Extended REST API (`src/dashboard/api.py`): Added `/api/adaptive/results` and `/api/adaptive/trajectory`.
-  - Added React Page 10 (`frontend/src/pages/AdaptiveControl.jsx`) with 72-hour interactive scrubber, telemetry inspector, Recharts power chart, regime architecture cards, and comparative matrix.
+### 1. Phase 13.5 Completed Outcomes:
+- **Design Philosophy ("Make complex energy intelligence feel simple"):**
+  - Redesigned the entire frontend experience into a clean, modern, cohesive industrial renewable energy control center.
+  - Implemented deep navy `#0B0F19` canvas, translucent glassmorphism cards, and semantic color palette (Solar Amber `#F59E0B`, Wind Cyan `#06B6D4`, Demand Blue `#3B82F6`, Battery Violet `#8B5CF6`, Grid Slate `#64748B`, Clean Savings Emerald `#10B981`).
+- **Two-Layer Explanation Architecture:**
+  - Layer 1: Human-friendly plain language on all cards and charts (e.g. "Electricity Demand", "Clean Generation", "Battery Charge", "Grid Electricity Needed", "High-Risk Cost Protection", "Uncertainty Protection", "Smart Energy Control").
+  - Layer 2: On-demand interactive `InfoTooltip.jsx` and `MetricCard.jsx` popovers providing "What this means", "Why it matters", "How to interpret", and exact mathematical formulations.
+- **Interactive Energy Flow Visualization (`frontend/src/components/EnergyFlowDiagram.jsx`):**
+  - Visualizes instantaneous power balance across Solar + Wind $\to$ Central Microgrid Hub $\leftrightarrow$ Battery (500 kWh, 150 kW) $\leftrightarrow$ Utility Grid $\to$ Campus Buildings.
+  - Interactive scrubber across all 48 trajectory hours with quick presets (*Solar Peak*, *Wind Peak*, *High Tariff*).
+  - Strictly enforces physics: non-simultaneous charge/discharge, symmetric $\pm 150\text{ kW}$ inverter limit.
+- **Main Command Dashboard (`frontend/src/pages/OverviewDashboard.jsx`):**
+  - Hero banner "Your Energy, Smarter." with "Historical Synthetic Simulation Benchmark • Winter Test Partition (1,313 hrs)" badge.
+  - 6 prioritized metric cards answering the 5 key questions (Demand, Renewables, Battery SOC, Grid Import, Net Operating Cost, Net Savings vs Baseline).
+  - Composed 48-hour area chart and leading strategy snapshot (GNN-MPC capturing 26.3% of theoretical Oracle gap).
+- **Subpage Redesigns:**
+  - `EnergyMonitoring.jsx`: Clear kW vs. kWh educational distinction, high-resolution telemetry, physical limit callouts.
+  - `ForecastingPage.jsx`: Plain-English MAE/RMSE explainer, 24h lookahead, GNN spatial topology + Transformer attention, and transparent *Forecasting vs. Economic Gap* documentation ($5.18 advantage due to 500 kWh battery saturation).
+  - `BatteryManagement.jsx`: State of charge gauge with 10%–90% operating window, 150 kW inverter limits, cycle degradation ($0.02/kWh), and arbitrage threshold principle.
+  - `ControllerComparison.jsx`: "Which Energy Strategy Works Best?", friendly names with technical subtitles, noncausal oracle ceiling callout, and CSV export.
+  - `RiskAnalytics.jsx`: "Energy Risk & Reliability", plain-English CVaR and DRO, peak hourly surge reduction (-30.5% from $164.95 to $114.71/h).
+  - `AdaptiveControl.jsx`: "Smart Energy Control", 4-stage visual pipeline (Observe $\to$ Evaluate $\to$ Select $\to$ Act), contextual policy routing, and 72-hour timeline.
+  - `AIAssistant.jsx`: "Ask Your Energy AI", 6 recommended questions, clean chat bubbles, grounding citations with RAG chunk relevance and MCP tool tags.
+- **Sidebar Reorganization (`frontend/src/components/Sidebar.jsx`):**
+  - Grouped into 4 logical sections: OVERVIEW, SMART MANAGEMENT, ANALYSIS, AI & INFORMATION.
+- **Verification & QA:**
+  - `npm test`: 6/6 formatter unit tests passed.
+  - `npm run build`: Clean Vite production bundle in 10.61s (`dist/`).
+  - Assistant & Dashboard tests: 15/15 passed.
+  - MCP & RAG tests: 14/14 passed.
+  - Data Acquisition tests: 29/29 passed unsandboxed.
+  - Frozen Phase 8.5 test hash: `305B769D5B98EDB57515010CD59F63B7D58CCB75D5C6AA1BE7864923859758D7` (pristine).
+  - Physical limits: 500 kWh storage, strictly 150 kW symmetric inverter limits verified.
+  - Git working tree: Clean; zero unauthorized commits, pushes, or deployments.
+
+Next task: Phase 13.5 UI/UX Redesign is COMPLETE. All development milestones are finished. Await project owner authorization before proceeding to submission packaging or final deployment.
+
+### 2. Phase 13 Completed Outcomes:
+- **Google Gen AI SDK Integration (`src/assistant/gemini_service.py`):**
+  - Built on `google-genai` (3.6.1). Configurable model (`GEMINI_MODEL`, default `gemini-2.5-flash`).
+  - Strict key isolation (never exposed to frontend or logged).
+  - Bounded retries (exponential backoff on 429/503), 20s timeout, and graceful offline fallback.
+- **ChromaDB Vector RAG Pipeline (`src/assistant/rag.py` & `scripts/ingest_rag_docs.py`):**
+  - Indexed 275 deterministic chunks across 13 core project documents and completion reports.
+  - Zero runtime network dependencies via locally cached ONNX MiniLM embeddings.
+  - Relevance-scored semantic retrieval with document and section attribution.
+- **Model Context Protocol (MCP) Server (`src/assistant/mcp_server.py`):**
+  - Implemented with `mcp` 2.3 SDK exposing 10 strictly read-only tools pulling directly from authoritative data sources (`DATA_SOURCE`).
+  - Covers system overview, energy summary, forecast metrics, battery status (500 kWh, 150 kW), 7-controller test comparisons, CVaR results, DRO results, adaptive selection statistics, simulation metadata, and scientific limitations.
+- **Assistant Orchestration Engine (`src/assistant/orchestrator.py`):**
+  - Unified pipeline: input validation $\to$ MCP structured data access $\to$ RAG context retrieval $\to$ strict grounding prompt assembly $\to$ Gemini inference $\to$ source attribution and provenance delivery.
+  - Grounded offline fallback providing structured answers even when `GEMINI_API_KEY` is not configured.
+- **Backend REST API (`src/dashboard/api.py`):**
+  - Added `POST /api/assistant/chat` and `GET /api/assistant/status`.
+  - CORS updated for `GET, POST, OPTIONS`.
+- **React AI Energy Assistant (`frontend/src/pages/AIAssistant.jsx`):**
+  - Page 11 (`/assistant`) with live status indicators, 6 recommended prompt pills, scrollable chat stream, collapsible source drawers with relevance scores, and clear scientific integrity disclosures.
+  - Standalone offline fallback support in `frontend/src/api/client.js` and `frontend/src/api/fallbackData.js`.
 - **Test Suite & Verification:**
-  - `tests/test_adaptive_policy_selector.py`: 9/9 passed.
-  - `tests/test_dro_math.py`: 39/39 passed.
-  - `tests/test_dashboard_api.py`: 7/7 passed.
-  - Frontend: `npm test` 5/5 passed, `npm run build` clean (14.87s).
-  - Phase 10–12 suite: 65/65 tests passed.
+  - `tests/test_rag.py`: 4/4 passed.
+  - `tests/test_mcp_server.py`: 10/10 passed.
+  - `tests/test_gemini_assistant.py`: 6/6 passed.
+  - `tests/test_dashboard_api.py`: 9/9 passed.
+  - Combined Phase 13 tests: 29/29 passed in 6.31s.
+  - Full Python regression: 1,096 passed.
+  - Frontend unit tests: 5/5 passed.
+  - Frontend production build: Clean Vite bundle in 12.89s.
+  - Frozen Phase 8.5 test hashes: Pristine (`305B769D...` and `8E12C074...`).
+  - Git working tree: Clean; zero commits, zero pushes.
 
-Next task: Phase 12 is COMPLETE. Complete development by November 18, 2026. Await project owner authorization before proceeding to RAG assistant, Gemini integration, or final submission packaging.
+Next task: Phase 13 is COMPLETE. All development milestones are finished ahead of the November 19, 2026 competition submission deadline. Await project owner authorization before proceeding to final deployment or submission packaging.
 
 ### 2. Phase 9 Completed Outcomes:
 - **Architecture Assessment:** Inspected complete repository structure, GNN forecasting, MPC, PPO, simulator, and comparative runner modules. Identified all authoritative artifacts. Formulated read-only frontend architecture plan in `docs/frontend_architecture_assessment.md`.
@@ -990,4 +1034,54 @@ Implemented causal, context-aware adaptive policy selection among specialized mi
 - Added React Page 10 (`frontend/src/pages/AdaptiveControl.jsx`) with interactive scrubber, composed power chart, regime architecture cards, and comparative matrix.
 - Verification: 9 unit tests passed in `tests/test_adaptive_policy_selector.py`, 7 API tests passed, 5/5 frontend unit tests passed, and Vite production build clean (14.87s). Phase 8.5 held-out test hashes remain pristine.
 
+## Phase 13: Gemini AI Energy Assistant, ChromaDB RAG, & MCP
 
+Implemented grounded natural-language assistant with local vector search and read-only tool calling:
+- Integrated Google Gen AI SDK (`google-genai` 3.6.1) in `src/assistant/gemini_service.py` with configurable model (`GEMINI_MODEL`, default `gemini-2.5-flash`), 20s timeout, bounded retries on 429/503, and graceful unconfigured/offline fallback.
+- Built ChromaDB vector RAG pipeline (`src/assistant/rag.py` & `scripts/ingest_rag_docs.py`), indexing 275 deterministic chunks across 13 core project documents and completion reports. Zero network calls at runtime with cached local ONNX embeddings.
+- Developed Model Context Protocol (MCP) server (`src/assistant/mcp_server.py`) with 10 strictly read-only tools pulling directly from authoritative data sources (`DATA_SOURCE`).
+- Built Assistant Orchestration Engine (`src/assistant/orchestrator.py`) connecting user queries to RAG context, MCP structured metrics, strict grounding rules, and Gemini synthesis, with grounded offline fallback support.
+- Extended REST API (`src/dashboard/api.py`): Added `POST /api/assistant/chat` and `GET /api/assistant/status` with full CORS support.
+- Developed React AI Energy Assistant (`frontend/src/pages/AIAssistant.jsx`) as Page 11 (`/assistant`) with live status indicators, 6 quick prompt pills, scrollable chat stream, expandable source drawers with relevance scores, and scientific integrity notices.
+- Verification: 29/29 Phase 13 tests passed, 1,096 full regression tests passed, 5/5 frontend unit tests passed, and Vite production build clean (12.89s). Phase 8.5 held-out test hashes remain pristine (`305B769D...` and `8E12C074...`). Zero commits, zero pushes.
+
+## UI presentation refresh - 2026-11-19
+
+Task: make the existing React dashboard more professional and understandable for everyday users.
+
+Completed: campus-inspired green visual treatment, redesigned overview hero, clearer metric hierarchy, simpler navigation and page introductions, mobile icon navigation with accessible labels, focus and reduced-motion styles, and assistant copy without service implementation details. Technical metric subtitles are removed from cards; detailed help remains available. Simulation/demo labels remain explicit. Corrected overview battery percentage, duplicate power units, and energy-flow field compatibility with bundled sample data. Existing local work was preserved.
+
+Verified: `npm run build --prefix frontend` passed; `npm test --prefix frontend` passed (6 tests). These commands required execution outside the sandbox because child process spawning returned EPERM. Production bundle retains Vite's large-chunk warning. Browser visual inspection could not run because the browser access host was unavailable. No backend or Python behavior was changed by this task.
+
+Next bounded task: visually review all routes at desktop and mobile widths when browser access is available; research views retain detailed scientific terminology where needed to interpret results.
+
+## Dataset intake and floating assistant / midnight-blue UI - 2026-11-19
+
+Current task: real CSV descriptive analysis plus UI overhaul, followed by the user's requested floating assistant, fewer navigation entries, and black/blue gradients instead of green.
+
+Completed: isolated upload storage and multipart routes; column mapping and unit confirmation; timestamp-aware analysis; strict uploaded-source selection/gates; compatibility assessment; revised overview and energy monitoring; lazy-loaded pages/charts; midnight-blue styling; seven-entry main sidebar with secondary pages under Study & methods; floating assistant retains chat across minimize/navigation, uses existing assistant service, supports Escape/focus restoration, and explicitly does not analyze uploaded data. The old /assistant URL opens the floating assistant. Existing research URLs remain accessible. No model retraining or algorithm changes were made.
+
+Verification:
+- `.\.venv\Scripts\python.exe -m pytest tests/test_user_datasets.py -q -p no:cacheprovider`: 35 passed in 2.32s.
+- `.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider`: 1,135 passed, 3 Gymnasium warnings in 257.64s.
+- `npm test --prefix frontend`: 12 passed.
+- `npm run build --prefix frontend`: passed; main bundle 236.70 kB, shared chart bundle 389.86 kB; no large-chunk warning in final build.
+- Live multipart upload through the Vite proxy, mapping, and dataset analysis: passed; uploaded sample returned 35.0 kWh; malformed CSV returned HTTP 400. Frontend and health checks returned HTTP 200 at 127.0.0.1:5173. An older backend process was replaced with the updated backend.
+
+Known limitations: browser interaction and desktop/mobile visual acceptance remain unverified after Computer Use could not safely identify the browser URL. The original full redesign of each advanced research page remains partial; their presentation colors/navigation changed, but scientific charts/details remain. Temporary uploads are not durable; deployment needs configured storage and authentication/tenant isolation before public multi-user use. See `docs/ui_redesign_and_dataset_upload_report.md` for full architecture, evidence, and deployment constraints.
+
+Next bounded task: restore browser verification, exercise upload/activation and floating assistant at desktop/mobile widths, and finish advanced research-page visual restructuring against the original brief. Do not claim the original browser acceptance criteria have passed.
+
+## Generalized workspace and local Ollama assistant - 2026-11-19
+
+User direction: make the product site-independent, remove Campus Demo, and run the assistant with local Ollama too.
+
+Completed: removed the campus source option/default demo overview, migrated old campus selections to no selected data, added a generalized data-first empty workspace, retained clearly labeled research references, and kept uploaded analyses scoped to their own records. The floating assistant defaults to local Ollama, lists installed models, accepts an explicit Gemini cloud selection, and includes the active dataset summary. Raw CSVs are not passed to the model. Research RAG/MCP context is opt-in. No automatic model download, cloud fallback, retraining, or equipment control is performed.
+
+Implementation: `src/assistant/ollama_service.py`, `src/assistant/energy_assistant.py`, assistant status/chat API routing, floating provider/model controls, source policy/context, generalized copy, `.env.example`, README, and `tests/test_ollama_assistant.py`. Loopback-only Ollama HTTP uses the official chat/tags APIs. CPU (`OLLAMA_NUM_GPU=0`) is the default; -1 allows automatic GPU offload. Initial GPU startup timed out on this machine; CPU succeeded.
+
+Verified: live Ollama `llama3.2:3b` returned a real small-business energy answer through the Vite proxy and assistant API. A numeric live check caught incorrect local-model arithmetic; direct total/peak/average measurement questions now use deterministic server answers. Final live upload/mapping/chat check returned exactly 35.000 kWh for the sample and labeled it as a verified calculation. Frontend and assistant status returned HTTP 200, with local Ollama available. Browser visual interaction remains unverified due to the earlier URL-verification block.
+
+Tests: initial combined local-model/Gemini/upload checks 56 passed; final focused `tests/test_ollama_assistant.py` 16 passed in 6.82s. `npm test --prefix frontend`: 12 passed. `npm run build --prefix frontend`: passed, 2,022 modules, main bundle 233.83 kB and chart bundle 389.86 kB. Full regression command `.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider`: 1,150 passed, 3 Gymnasium warnings in 428.88s. This run began before the final exact-answer safeguard; the final 16-test focused run covers that subsequent change.
+
+Known limits: model-written general explanations can be wrong; only direct recognized measured totals/peak/average questions use the deterministic calculation path. Ollama must run on the backend machine, not automatically on a hosted site's visitor device. Existing trained forecasting topology and preprocessing are unchanged and are not generalized to arbitrary uploads. Temporary upload storage and browser acceptance constraints remain as documented in `docs/ui_redesign_and_dataset_upload_report.md`.

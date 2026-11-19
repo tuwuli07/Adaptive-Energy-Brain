@@ -73,3 +73,24 @@ def test_api_data_source_loads_adaptive_results():
     assert "rationale" in first_step
 
 
+def test_assistant_orchestrator_integration():
+    from src.assistant.orchestrator import ASSISTANT_ORCHESTRATOR
+    res = ASSISTANT_ORCHESTRATOR.answer_query("What is the battery inverter power limit?")
+    assert res["status"] in ("success", "offline_fallback", "fallback_on_error")
+    assert "150" in res["answer"]
+    assert len(res["sources"]) > 0
+    assert "data_provenance" in res
+
+
+def test_assistant_status_payload():
+    from src.assistant.gemini_service import GEMINI_SERVICE
+    from src.assistant.mcp_server import list_registered_tools
+    from src.assistant.rag import RAG_PIPELINE
+
+    tools = list_registered_tools()
+    assert len(tools) == 10
+    chunks = RAG_PIPELINE.get_collection().count()
+    assert chunks >= 200
+
+
+

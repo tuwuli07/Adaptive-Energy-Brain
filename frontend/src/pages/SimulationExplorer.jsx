@@ -69,12 +69,12 @@ export default function SimulationExplorer() {
     <div className="space-y-6">
       <SectionHeader
         title="Simulation Run Explorer"
-        subtitle="Inspect step-by-step physical dispatch, tariff interaction, and energy flows across verified simulation trajectories."
+        subtitle="Follow hourly energy use, battery decisions, and costs."
         action={
           <div className="flex items-center gap-2">
             <button
               onClick={handleDownloadCsv}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold shadow-xs transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold shadow-xs transition-colors"
             >
               <FileSpreadsheet className="w-3.5 h-3.5" />
               <span>Download CSV</span>
@@ -148,7 +148,7 @@ export default function SimulationExplorer() {
         <div className="h-72 w-full">
           {loading ? (
             <div className="h-full flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -164,11 +164,11 @@ export default function SimulationExplorer() {
                 <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} unit=" kW" />
                 <Tooltip formatter={(val, name) => [`${val} kW`, name]} labelFormatter={(lbl) => formatDate(lbl)} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 6 }} />
-                <Line type="monotone" dataKey="demand_kw" name="Campus Demand (kW)" stroke="#ef4444" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="demand_kw" name="Site Demand (kW)" stroke="#ef4444" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="solar_kw" name="Solar Available (kW)" stroke="#f59e0b" strokeWidth={1.5} dot={false} />
                 <Line type="monotone" dataKey="wind_kw" name="Wind Available (kW)" stroke="#06b6d4" strokeWidth={1.5} dot={false} />
                 <Line type="monotone" dataKey="grid_import_kw" name="Grid Import (kW)" stroke="#8b5cf6" strokeWidth={1.5} dot={false} />
-                <Line type="stepAfter" dataKey="battery_power_kw" name="Battery Power (kW)" stroke="#10b981" strokeWidth={2} dot={false} />
+                <Line type="stepAfter" dataKey="battery_power_kw" name="Battery Power (kW)" stroke="#1051b9" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           )}
@@ -189,15 +189,15 @@ export default function SimulationExplorer() {
         <div className="h-56 w-full">
           {loading ? (
             <div className="h-full flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={timeseries} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="costGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#1051b9" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#1051b9" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -210,7 +210,7 @@ export default function SimulationExplorer() {
                 />
                 <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} unit=" $" />
                 <Tooltip formatter={(val) => [formatCurrency(val), 'Hourly Net Cost']} labelFormatter={(lbl) => formatDate(lbl)} />
-                <Area type="monotone" dataKey="cost_usd" name="Net Operating Cost ($)" stroke="#10b981" fill="url(#costGrad)" strokeWidth={2} />
+                <Area type="monotone" dataKey="cost_usd" name="Net Operating Cost ($)" stroke="#1051b9" fill="url(#costGrad)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           )}

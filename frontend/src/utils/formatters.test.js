@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { formatCurrency, formatNumber, formatEnergy, formatPercent, formatDate } from './formatters.js';
+import { formatCurrency, formatNumber, formatEnergy, formatPower, formatPercent, formatDate } from './formatters.js';
 
 test('formatCurrency formats USD correctly', () => {
   assert.equal(formatCurrency(36532.73), '$36,532.73');
@@ -31,4 +31,11 @@ test('formatDate formats ISO string with UTC suffix', () => {
   assert.ok(formatted.includes('Nov 28'));
   assert.ok(formatted.includes('03:00'));
   assert.ok(formatted.includes('UTC'));
+});
+
+test('formatPower formats kW and MW properly', () => {
+  assert.equal(formatPower(150), '150.0 kW');
+  assert.equal(formatPower(2400), '2.40 MW');
+  assert.equal(formatPower(0), '0.0 kW');
+  assert.equal(formatPower(null), '0.0 kW');
 });

@@ -9,6 +9,8 @@ import {
   FALLBACK_RESEARCH_RESULTS,
   FALLBACK_RISK_RESULTS,
   FALLBACK_ADAPTIVE_RESULTS,
+  FALLBACK_ASSISTANT_STATUS,
+  getFallbackAssistantAnswer,
   generateSampleAdaptiveTrajectory,
   generateSampleTimeseries
 } from './fallbackData';
@@ -20,12 +22,13 @@ async function fetchJson(endpoint, fallback) {
     const res = await fetch(`${BASE_URL}${endpoint}`);
     if (!res.ok) {
       console.warn(`API ${endpoint} returned ${res.status}; using fallback data.`);
-      return fallback;
+      return fallback && !Array.isArray(fallback) ? { ...fallback, _data_source: 'saved_or_illustrative' } : fallback;
     }
-    return await res.json();
+    const result = await res.json();
+    return result && !Array.isArray(result) ? { ...result, _data_source: 'research_api' } : result;
   } catch (err) {
     console.info(`API ${endpoint} unavailable (${err.message}); using fallback data.`);
-    return fallback;
+    return fallback && !Array.isArray(fallback) ? { ...fallback, _data_source: 'saved_or_illustrative' } : fallback;
   }
 }
 
@@ -125,6 +128,31 @@ export const api = {
 
   async getAdaptiveTrajectory() {
     return fetchJson('/adaptive/trajectory', generateSampleAdaptiveTrajectory(71));
+  },
+
+  async getAssistantStatus() {
+    const response = await fetch(`${BASE_URL}/assistant/status`);
+    if (!response.ok) throw new Error('The assistant service is unavailable.');
+    return response.json();
+  },
+
+  async sendAssistantMessage(message, history = [], options = {}) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120000);
+    try {
+      const response = await fetch(`${BASE_URL}/assistant/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, history, ...options }),
+        signal: controller.signal,
+      });
+      const result = await response.json();
+      if (!response.ok || result.status === 'error' || result.status === 'invalid_input') throw new Error(result.error || result.answer || 'The selected assistant could not answer.');
+      return result;
+    } catch (error) {
+      if (error.name === 'AbortError') throw new Error('The assistant took too long. Try a shorter question or a smaller local model.');
+      throw error;
+    } finally { clearTimeout(timeout); }
   },
 
   getExportUrl(controllerId, partition = 'test', format = 'csv') {

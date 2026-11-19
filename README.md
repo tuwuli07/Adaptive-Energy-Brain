@@ -186,3 +186,45 @@ external providers, retrieval, orchestration, and agent frameworks are not
 installed or required; see the [AI stack integration plan](docs/ai_stack_integration_plan.md).
 PyTorch is an optional ML dependency; see
 [ML environment setup](docs/ml_environment_setup.md) for local CPU and Colab GPU instructions.
+
+## General energy workspace and local assistant
+
+The main workspace supports uploaded site data for homes, buildings, businesses,
+renewable communities, and microgrids. There is no default campus demo or
+substituted sample dashboard. Published experiments remain separately labeled
+research references; they do not establish performance for an uploaded site.
+
+The floating energy assistant defaults to local Ollama. Start Ollama and select
+an installed model in the assistant. This checkout's local verification used
+`llama3.2:3b`; other installed chat models can be selected. No model is pulled
+automatically. If starting from a new machine, install Ollama and run
+`ollama pull llama3.2:3b` yourself, then restart/refresh the assistant.
+
+Server configuration (see `.env.example`):
+
+```dotenv
+ENERGY_ASSISTANT_PROVIDER=ollama
+OLLAMA_BASE_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=llama3.2:3b
+OLLAMA_NUM_GPU=0
+```
+
+CPU inference is the default because GPU startup timed out during local
+verification; `OLLAMA_NUM_GPU=-1` opts into Ollama's automatic GPU offload.
+The adapter uses the official [Ollama chat API](https://docs.ollama.com/api/chat) and [installed-model listing API](https://docs.ollama.com/api/tags).
+The local endpoint is restricted to loopback HTTP and ignores system HTTP
+proxies. The model receives the question, limited conversation history, and
+only the selected dataset's validated summary when present. Full raw CSVs are
+not passed to the assistant. Local-model errors are shown explicitly and never
+fall back to Gemini or canned project answers.
+
+Gemini remains available as an explicit cloud option when `GEMINI_API_KEY` is
+configured on the backend. Selecting it sends the question, conversation
+history, and selected dataset summary to Gemini; the UI discloses this.
+Published research context (existing RAG and read-only MCP tools) is included
+only when the user enables **Include published research references**.
+
+The backend and Ollama run on the server computer. In a hosted deployment,
+"local Ollama" means that server, not each visitor's computer; the host must
+provide its own running model service. LLM answers do not run forecasting,
+retraining, optimization, or equipment control.

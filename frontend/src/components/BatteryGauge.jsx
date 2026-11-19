@@ -6,8 +6,8 @@ export default function BatteryGauge({ soc = 0.5, powerKw = 0, capacityKwh = 500
   const storedKwh = (soc * capacityKwh).toFixed(1);
 
   // Dynamic status colors based on SOC
-  let barColor = 'bg-emerald-500';
-  let badgeColor = 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50';
+  let barColor = 'bg-blue-500';
+  let badgeColor = 'text-blue-600 bg-blue-50 dark:bg-blue-950/50';
   if (percentage < 20) {
     barColor = 'bg-rose-500';
     badgeColor = 'text-rose-600 bg-rose-50 dark:bg-rose-950/50';
@@ -23,7 +23,7 @@ export default function BatteryGauge({ soc = 0.5, powerKw = 0, capacityKwh = 500
     <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
+          <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
             <Battery className="w-5 h-5" />
           </div>
           <div>
