@@ -13,6 +13,7 @@ export default function FloatingAssistant({ open, setOpen }) {
   const [status, setStatus] = useState(null);
   const [provider, setProvider] = useState(() => localStorage.getItem('energy-assistant-provider') || 'ollama');
   const [model, setModel] = useState('');
+  const [accessKey, setAccessKey] = useState('');
   const [research, setResearch] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef(null);
@@ -30,7 +31,12 @@ export default function FloatingAssistant({ open, setOpen }) {
   }, [open]);
   const refreshStatus = () => api.getAssistantStatus().then(result => {
     setStatus(result);
-    if (!localStorage.getItem('energy-assistant-provider')) setProvider(result.default_provider || 'ollama');
+    if (result.public_preview && result.gemini_configured) {
+      setProvider('gemini');
+      localStorage.setItem('energy-assistant-provider', 'gemini');
+    } else if (!localStorage.getItem('energy-assistant-provider')) {
+      setProvider(result.default_provider || 'ollama');
+    }
     setModel(current => result.ollama?.models?.includes(current) ? current : result.ollama?.models?.includes(result.ollama?.model) ? result.ollama.model : result.ollama?.models?.[0] || '');
   }).catch(() => setStatus({ unavailable: true }));
   useEffect(() => { if (open && !status) refreshStatus(); }, [open, status]);
@@ -43,7 +49,7 @@ export default function FloatingAssistant({ open, setOpen }) {
     const history = messages.slice(-6).map(m => ({ role: m.role === 'user' ? 'user' : 'model', content: m.text }));
     setMessages(prev => [...prev, { role: 'user', text }]);
     try {
-      const response = await api.sendAssistantMessage(text, history, { provider, model: provider === 'ollama' ? model : undefined, dataset_id: source !== 'none' ? source : undefined, research });
+      const response = await api.sendAssistantMessage(text, history, { provider, model: provider === 'ollama' ? model : undefined, dataset_id: source !== 'none' ? source : undefined, research, accessKey: provider === 'gemini' ? accessKey : undefined });
       if (!response.answer) throw new Error('The assistant did not return an answer. Please try again.');
       setMessages(prev => [...prev, { role: 'assistant', text: response.answer, sources: response.sources || [], provider: response.provider, model: response.model }]);
     } catch (e) { setError(e.message || 'The assistant is unavailable. Please try again.'); }
@@ -57,6 +63,7 @@ export default function FloatingAssistant({ open, setOpen }) {
         {provider === 'ollama' && <label>Local model<select aria-label="Local Ollama model" disabled={busy} value={model} onChange={e => setModel(e.target.value)}>{!model && <option value="">No model installed</option>}{(status?.ollama?.models || []).map(name => <option key={name}>{name}</option>)}</select></label>}
         <button type="button" aria-label="Refresh assistant connection" onClick={refreshStatus} disabled={busy}>Refresh</button>
       </div>
+      {provider === 'gemini' && status?.assistant_access_required && <label className="assistant-access-key">Assistant access key<input type="password" autoComplete="current-password" value={accessKey} onChange={e => setAccessKey(e.target.value)} disabled={busy} placeholder="Enter your Render access key" /></label>}
       <div className="assistant-scope">{provider === 'ollama' ? 'Local processing. No automatic cloud fallback.' : 'Cloud processing: questions and any active dataset summary are sent to Gemini.'} {activeMeta ? `Active data: ${activeMeta.name}` : 'No site data selected; general guidance only.'}</div>
       <label className="assistant-research-toggle"><input type="checkbox" checked={research} disabled={busy} onChange={e => setResearch(e.target.checked)} />Include published research references</label>
       {provider === 'ollama' && status && !status.ollama?.available && <div className="assistant-upload-notice">Start Ollama on this computer, then refresh. Install a model with Ollama if none is listed.</div>}

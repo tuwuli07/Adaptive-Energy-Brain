@@ -4,3 +4,4 @@ matplotlib
 scikit-learn
 pyyaml
 pytest
+google-genai

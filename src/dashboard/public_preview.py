@@ -4,6 +4,7 @@ Run with python -m src.dashboard.public_preview. Tunnel port 8787, never the
 repository, development server, backend port, or Ollama port directly.
 """
 import http.client
+import hmac
 import json
 import mimetypes
 import os
@@ -28,6 +29,27 @@ DATASET_ROUTE = re.compile(r"/api/datasets/[a-f0-9]{32}(?:/(?:analysis|mapping))
 MODEL_SLOT = threading.BoundedSemaphore(1)
 RATE_LOCK = threading.Lock()
 RATE = defaultdict(deque)
+
+
+def gemini_preview_enabled(environ=None):
+    env = os.environ if environ is None else environ
+    return (
+        env.get("ENERGY_ASSISTANT_PROVIDER", "").strip().lower() == "gemini"
+        and bool(env.get("GEMINI_API_KEY", "").strip())
+        and len(env.get("ENERGY_ASSISTANT_ACCESS_KEY", "")) >= 32
+    )
+
+
+def valid_gemini_access_key(authorization, environ=None):
+    env = os.environ if environ is None else environ
+    expected = env.get("ENERGY_ASSISTANT_ACCESS_KEY", "")
+    scheme, separator, supplied = authorization.partition(" ")
+    return (
+        gemini_preview_enabled(env)
+        and scheme.lower() == "bearer"
+        and bool(separator)
+        and hmac.compare_digest(supplied.encode("utf-8"), expected.encode("utf-8"))
+    )
 
 
 def allowed_api(method, path):
@@ -107,9 +129,15 @@ class PreviewHandler(BaseHTTPRequestHandler):
                     raise ValueError()
             except (ValueError, UnicodeError):
                 return self.reply(400, {"error": "Invalid chat request"})
-            # Public preview cannot consume cloud API credits or request arbitrary
-            # model downloads. The local backend enforces installed model names.
-            data["provider"] = "ollama"
+            if data.get("provider") == "gemini":
+                if not gemini_preview_enabled():
+                    return self.reply(503, {"error": "Gemini is not enabled for this hosted assistant."})
+                if not valid_gemini_access_key(self.headers.get("Authorization", "")):
+                    return self.reply(401, {"error": "Enter a valid assistant access key to use Gemini."})
+            else:
+                # The public preview does not accept arbitrary providers or model
+                # downloads. The local backend enforces installed model names.
+                data["provider"] = "ollama"
             body = json.dumps(data).encode()
             client = self.headers.get("CF-Connecting-IP", self.client_address[0])
             now = time.monotonic()
@@ -135,7 +163,13 @@ class PreviewHandler(BaseHTTPRequestHandler):
                 payload = json.dumps({"status": "online", "service": "Adaptive Energy Brain", "mode": "public_preview"}).encode()
             if parsed.path == "/api/assistant/status" and response.status == 200:
                 data = json.loads(payload)
-                data.update({"default_provider": "ollama", "gemini_configured": False, "public_preview": True})
+                gemini_enabled = gemini_preview_enabled()
+                data.update({
+                    "default_provider": "gemini" if gemini_enabled else "ollama",
+                    "gemini_configured": gemini_enabled,
+                    "assistant_access_required": gemini_enabled,
+                    "public_preview": True,
+                })
                 payload = json.dumps(data).encode()
             if response.status >= 500:
                 payload = json.dumps({"error": "The local service is unavailable. Please try again shortly."}).encode()

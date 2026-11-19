@@ -140,10 +140,13 @@ export const api = {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 120000);
     try {
+      const { accessKey, ...requestOptions } = options;
+      const headers = { 'Content-Type': 'application/json' };
+      if (accessKey) headers.Authorization = `Bearer ${accessKey}`;
       const response = await fetch(`${BASE_URL}/assistant/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, history, ...options }),
+        headers,
+        body: JSON.stringify({ message, history, ...requestOptions }),
         signal: controller.signal,
       });
       const result = await response.json();
