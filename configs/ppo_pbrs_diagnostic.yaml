@@ -1,0 +1,19 @@
+version: 1
+stage: pbrs_diagnostic
+reward_scale: 0.0025
+gamma: 0.999
+seed: 0
+learning_rate: 0.0003
+total_timesteps: 16384
+episode_hours: 168
+checkpoint_interval: 2048
+validation_checkpoints: [4096, 8192, 16384]
+validation_rows: 1314
+initial_soc: 0.5
+action_space_type: "discrete_3"
+reward_shaping:
+  enabled: true
+  reference_value_usd_per_kwh_dc: 0.14736842105263157
+  gamma: 0.999
+  capacity_kwh: 500.0
+control_source: "part6_4_discrete_diagnostic_20261115_treatment/treatment"

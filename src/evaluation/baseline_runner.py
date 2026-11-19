@@ -11,6 +11,10 @@ import yaml
 from src.baselines import available_controllers, create_controller
 from src.baselines.battery_preserving import load_battery_preserving_config
 from src.baselines.price_aware import load_price_aware_config
+from src.evaluation.inventory_accounting import (
+    compute_inventory_adjusted_cost,
+    compute_replacement_reference_value,
+)
 from src.simulation.config import (
     SimulationConfig,
     load_simulation_config,
@@ -77,7 +81,7 @@ def _controller_parameters(controller):
     }
 
 
-def _run_controller(name, controller, environment, synthetic):
+def _run_controller(name, controller, environment, synthetic, *, record_observation_context=False):
     controller.reset()
     initial_observation = environment.reset()
     initial_soc = initial_observation.state.battery_soc
@@ -92,7 +96,7 @@ def _run_controller(name, controller, environment, synthetic):
         boundary_socs.append(step.observation.state.battery_soc)
         values = asdict(step.metrics.values)
         cumulative = asdict(step.cumulative_metrics)
-        hourly.append({
+        record = {
             "timestamp_utc": dispatch.timestamp_utc,
             "interval_hours": step.metrics.time_step_hours,
             "currency_code": step.metrics.currency_code,
@@ -133,7 +137,12 @@ def _run_controller(name, controller, environment, synthetic):
             "energy_balance_residual_kwh": dispatch.energy_balance_residual_kwh,
             "adjustment_count": len(step.metrics.adjustments),
             "violation_count": len(step.metrics.violations),
-        })
+        }
+        if record_observation_context:
+            features = observation.features()
+            record["observed_import_price_per_kwh"] = features["grid_import_price"]
+            record["observed_export_price_per_kwh"] = features["grid_export_price"]
+        hourly.append(record)
         trace.append({
             "timestamp_utc": dispatch.timestamp_utc,
             "adjustments": [asdict(item) for item in step.metrics.adjustments],
@@ -353,14 +362,31 @@ def run_baseline_experiments(
         raise RuntimeError("Controller episode lengths differ for identical inputs.")
 
     comparison = []
+    ref_value = compute_replacement_reference_value(
+        physical_config, cost_config, baseline_config=baseline_path
+    )
     for name, result in results.items():
         summary = result["summary"]
+        capacity = physical_config.battery.capacity_kwh
+        init_e = summary["initial_soc"] * capacity
+        term_e = summary["terminal_soc"] * capacity
+        raw_cost = summary["cumulative_metrics"]["net_operating_cost"]
+        adj_data = compute_inventory_adjusted_cost(
+            raw_cost, init_e, term_e, ref_value
+        )
+        summary.update(adj_data)
         comparison.append({
             "controller": name,
             "steps": summary["steps"],
             "initial_soc": summary["initial_soc"],
             "terminal_soc": summary["terminal_soc"],
-            "net_operating_cost": summary["cumulative_metrics"]["net_operating_cost"],
+            "initial_energy_kwh": init_e,
+            "terminal_energy_kwh": term_e,
+            "energy_change_kwh": adj_data["energy_change_kwh"],
+            "net_operating_cost": raw_cost,
+            "reference_value_usd_per_kwh_dc": ref_value,
+            "inventory_adjustment_usd": adj_data["inventory_adjustment_usd"],
+            "inventory_adjusted_net_operating_cost_usd": adj_data["inventory_adjusted_net_operating_cost_usd"],
             "grid_import_energy_kwh": summary["cumulative_metrics"]["grid_import_energy_kwh"],
             "grid_export_energy_kwh": summary["cumulative_metrics"]["grid_export_energy_kwh"],
             "battery_throughput_kwh": summary["cumulative_metrics"]["battery_throughput_kwh"],

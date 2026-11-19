@@ -1,0 +1,10 @@
+version: 1
+horizon_hours: 24
+time_step_hours: 1.0
+solver_method: highs
+# Nominal off-peak replacement cost: (0.12 + 0.02) / 0.95 USD/kWh DC
+terminal_inventory_value_usd_per_kwh_dc: 0.14736842105263157
+power_balance_tolerance_kw: 0.00001
+simultaneous_flow_tolerance_kw: 0.00001
+allow_curtailment: true
+strict_exclusivity: true

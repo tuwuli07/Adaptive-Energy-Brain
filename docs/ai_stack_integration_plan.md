@@ -3,19 +3,19 @@
 ## Scope and repository findings
 
 The selected stack is a direction for development, not a requirement to install
-every tool. The current project is a Python research codebase: Parts 1–4
-implement data preparation, a physical simulator, rule-based controllers, and
-experiment evaluation. Part 5 forecasting is not implemented. Existing scripts
-run workflows directly; experiment artifacts already record provenance and
-checksums in JSON. No new runtime package or service is required for this
-alignment.
+every tool. Parts 1–5.10 now implement data preparation, a physical simulator,
+rule-based controllers, a GNN-Transformer forecasting pipeline, and training
+and final evaluation scripts. Forecasting checkpoints and Colab results remain
+external artifacts. Existing scripts run workflows directly; experiment
+artifacts record provenance and checksums in JSON. No optional orchestration,
+agent, LLM, or retrieval service is required for the implemented workflow.
 
 | Selected tool or practice | Repository status after this change | Evidence / boundary |
 |---|---|---|
 | Semantic chunk deduplication | Planned; not implemented or configured | Consider only for a later knowledge-retrieval corpus. |
 | Sliding-window/context trimming | Planned; not implemented or configured | No LLM context pipeline exists. Forecast sequence windows are ordinary time-series inputs, not LLM context trimming. |
 | Rolling summary memory | Planned; not implemented or configured | No agent memory component exists. |
-| Structured JSON outputs | Partially present for experiment/audit artifacts; not an LLM output mechanism | Existing data and baseline workflows write JSON metadata and checksums. A proposed Part 5 run-metadata contract is in [the schema](../configs/experiment_metadata.schema.json); runtime validation is not implemented. |
+| Structured JSON outputs | Implemented for Part 5 experiment/evaluation artifacts; not an LLM output mechanism | Training metadata, evaluation results, manifests and checksums use JSON; see [the schema](../configs/experiment_metadata.schema.json). |
 | Cheap-model routing | Planned; not implemented or configured | No model router or LLM calls exist. |
 | Gemini, Grok, Qwen | Planned provider options; no clients, credentials, or configuration | Keep provider calls outside forecasting/training code. |
 | Naive RAG | Not implemented | `src/rag/` is an empty package placeholder. The assistant is explicitly out of Part 5 scope. |
@@ -35,8 +35,8 @@ not imply that any absent tool is installed outside this repository.
 Do not install, initialize, or add Spec-Kit templates as part of this task. If
 the team chooses to adopt its specification-first workflow:
 
-1. Before Part 5.1 coding, write one forecasting feature specification under
-   `.specify/specs/part5-gnn-transformer/spec.md`. State scope, requirements,
+1. Before a future DRL implementation, write a bounded specification under
+   `.specify/specs/part6-drl/spec.md`. State scope, requirements,
    acceptance criteria, data/forecast interfaces, leakage rules, and explicit
    exclusions (no simulator rewrite, baseline changes, RAG, or training-time
    LLM calls).
@@ -54,8 +54,8 @@ dependency or rewriting the existing documentation.
 ## Part 5 experiment metadata
 
 The project already uses YAML for checked-in configuration and JSON for
-generated run/audit metadata. Continue that division: keep experiment
-parameters in YAML; serialize each run's metadata in JSON. The new
+generated run/audit metadata. This division is implemented for Part 5; keep
+experiment parameters in YAML and serialize each run's metadata in JSON. The
 [JSON Schema](../configs/experiment_metadata.schema.json) defines a
 versioned, dependency-free contract for Part 5 runs, including:
 
@@ -67,10 +67,9 @@ versioned, dependency-free contract for Part 5 runs, including:
   measured metrics, and artifact hashes.
 
 The contract requires validation-based model selection and explicitly forbids
-test-based selection. It is a schema only: no experiment runner, validator
-dependency, or training implementation is added. Part 5.1 should emit metadata
-and add validation at the experiment-artifact boundary, selecting an existing
-or optional validator only if justified. If this contract proves too
+test-based selection. The forecasting training and evaluation scripts emit
+and validate their artifacts against the corresponding contracts without
+adding an optional workflow service. If this contract proves too
 restrictive for the chosen model, revise it with a schema version bump rather
 than silently changing old run metadata.
 

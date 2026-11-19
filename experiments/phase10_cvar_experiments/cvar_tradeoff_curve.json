@@ -1,0 +1,72 @@
+[
+  {
+    "risk_aversion_lambda": 0.0,
+    "adjusted_net_cost_usd": 5219.65,
+    "raw_net_cost_usd": 5225.85,
+    "hourly_cost_cvar_95_usd": 110.46,
+    "worst_case_hourly_cost_usd": 114.71,
+    "battery_fce": 2.341,
+    "battery_degradation_cost_usd": 46.81,
+    "mean_latency_ms": 82.62
+  },
+  {
+    "risk_aversion_lambda": 0.25,
+    "adjusted_net_cost_usd": 5219.65,
+    "raw_net_cost_usd": 5225.85,
+    "hourly_cost_cvar_95_usd": 110.46,
+    "worst_case_hourly_cost_usd": 114.71,
+    "battery_fce": 2.341,
+    "battery_degradation_cost_usd": 46.81,
+    "mean_latency_ms": 85.99
+  },
+  {
+    "risk_aversion_lambda": 0.5,
+    "adjusted_net_cost_usd": 5219.65,
+    "raw_net_cost_usd": 5225.85,
+    "hourly_cost_cvar_95_usd": 110.46,
+    "worst_case_hourly_cost_usd": 114.71,
+    "battery_fce": 2.341,
+    "battery_degradation_cost_usd": 46.81,
+    "mean_latency_ms": 78.07
+  },
+  {
+    "risk_aversion_lambda": 1.0,
+    "adjusted_net_cost_usd": 5219.65,
+    "raw_net_cost_usd": 5225.85,
+    "hourly_cost_cvar_95_usd": 110.46,
+    "worst_case_hourly_cost_usd": 114.71,
+    "battery_fce": 2.341,
+    "battery_degradation_cost_usd": 46.81,
+    "mean_latency_ms": 74.16
+  },
+  {
+    "risk_aversion_lambda": 2.0,
+    "adjusted_net_cost_usd": 5215.73,
+    "raw_net_cost_usd": 5221.94,
+    "hourly_cost_cvar_95_usd": 110.46,
+    "worst_case_hourly_cost_usd": 114.71,
+    "battery_fce": 2.363,
+    "battery_degradation_cost_usd": 47.26,
+    "mean_latency_ms": 80.58
+  },
+  {
+    "risk_aversion_lambda": 3.0,
+    "adjusted_net_cost_usd": 5215.73,
+    "raw_net_cost_usd": 5221.94,
+    "hourly_cost_cvar_95_usd": 110.46,
+    "worst_case_hourly_cost_usd": 114.71,
+    "battery_fce": 2.363,
+    "battery_degradation_cost_usd": 47.26,
+    "mean_latency_ms": 79.93
+  },
+  {
+    "risk_aversion_lambda": 5.0,
+    "adjusted_net_cost_usd": 5215.73,
+    "raw_net_cost_usd": 5221.94,
+    "hourly_cost_cvar_95_usd": 110.46,
+    "worst_case_hourly_cost_usd": 114.71,
+    "battery_fce": 2.363,
+    "battery_degradation_cost_usd": 47.26,
+    "mean_latency_ms": 75.06
+  }
+]

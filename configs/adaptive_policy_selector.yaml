@@ -1,0 +1,33 @@
+version: 1
+method: "adaptive_regime_routing"
+meta_learning_status: "future_work"
+candidate_controllers:
+  - id: "mpc_gnn_transformer"
+    name: "GNN-Transformer MPC"
+    type: "nominal_predictive"
+  - id: "mpc_seasonal_persistence"
+    name: "Seasonal Persistence MPC"
+    type: "heuristic_predictive"
+  - id: "mpc_cvar_balanced"
+    name: "CVaR Risk-Aware MPC (lambda=1.0)"
+    type: "tail_risk_hedging"
+  - id: "mpc_dro_robust"
+    name: "DRO Robust MPC (eps=0.5)"
+    type: "distributionally_robust"
+
+thresholds:
+  peak_tariff_threshold_usd: 0.16
+  extreme_price_spike_usd: 0.25
+  solar_capture_min_kw: 35.0
+  solar_window_start_hour: 8
+  solar_window_end_hour: 16
+  peak_window_start_hour: 15
+  peak_window_end_hour: 20
+  min_discharge_soc: 0.20
+  max_charge_soc: 0.85
+  compound_deficit_kw: 180.0
+
+fallback_order:
+  - "mpc_gnn_transformer"
+  - "mpc_seasonal_persistence"
+  - "zero_action"

@@ -17,9 +17,11 @@ selection, and risk optimization to study energy management under uncertainty.
   experiments and appropriate baselines.
 
 Parts 1–4 provide synthetic-data preparation, a research simulator, and
-rule-based controller baselines. Their short synthetic experiments are smoke
-evidence, not real-campus or deployment performance claims. Forecasting and
-the other advanced research objectives remain future work.
+rule-based controller baselines. Parts 5.1–5.10 have implemented, trained, and
+evaluated a GNN-Transformer forecasting research pipeline on a synthetic
+hypothetical campus dataset. The forecast model did not beat seasonal
+persistence overall. Neither these experiments nor the simulator establish
+real-campus performance or operational readiness.
 
 ## Research architecture and status
 
@@ -31,9 +33,12 @@ The planned research workflow is:
    research simulator.
 3. **Rule-based baselines (Part 4 complete):** compare four causal controller
    strategies using shared episode and evaluation interfaces.
-4. **GNN-Transformer Forecasting (Part 5, not started):** model spatial
-   relationships and temporal patterns in renewable generation and demand.
-5. **Deep Reinforcement Learning:** train and compare multiple control policies.
+4. **GNN-Transformer Forecasting (Parts 5.1–5.10 complete):** train and
+   evaluate node-level demand and renewable forecasts; results and integration
+   limits are summarized in the
+   [Part 5 completion report](docs/part5_completion_report.md).
+5. **Deep Reinforcement Learning (next planned phase):** specify and compare
+   control policies using the existing simulator; not implemented.
 6. **Meta-Learning Policy Selector:** investigate policy selection as conditions
    change.
 7. **DRO/CVaR Risk Optimization:** investigate robustness and tail-risk control.
@@ -47,11 +52,12 @@ optional tooling. Do not treat planned components as implemented.
 ## Technology stack
 
 - **Configured:** Python 3.12, a local `.venv`, NumPy, pandas, Matplotlib,
-  scikit-learn, PyYAML, and pytest.
+  scikit-learn, PyYAML, pytest, and the optional PyTorch ML environment
+  (CPU locally; a separate Colab GPU run was reported).
 - **Development tools:** Windows, PowerShell, VS Code, and Git.
-- **Deferred candidates:** PyTorch, PyTorch Geometric, Stable-Baselines3,
-  Gymnasium, CVXPY, Streamlit, and RAG tooling. These are not installed or
-  integrated as part of the current setup.
+- **Deferred candidates:** PyTorch Geometric, Stable-Baselines3, Gymnasium,
+  CVXPY, Streamlit, and RAG tooling. These are not required by the current
+  forecasting or simulator workflows.
 
 ## Project directory structure
 
@@ -143,19 +149,19 @@ Or without activation:
 .\.venv\Scripts\python.exe main.py
 ```
 
-The entry point prints a status overview of implemented, current, and planned
-research components. It does not run simulations, train models, or start a
-dashboard.
+The entry point prints a status overview of implemented and planned research
+components. It does not run simulations, train models, or start a dashboard.
 
 ## Current development status
 
-Parts 1–4 are complete: data preparation, the research simulator, and four
-rule-based controller baselines with a shared evaluation workflow. Part 5
-GNN-Transformer forecasting has not started. No reinforcement-learning policy,
-meta-learning selector, risk optimizer, dashboard, or RAG assistant is
-implemented. Parts 1–4 use synthetic/hypothetical data and do not establish
-real-campus performance. See [the development handoff](docs/development_handoff.md)
-and [Part 4 completion report](docs/part4_completion_report.md).
+Parts 1–4 and the Part 5.1–5.10 forecasting pipeline are complete. The reported
+Part 5 Colab experiment used a Tesla T4 and a held-out synthetic test partition;
+its aggregate results and caveats are recorded in the
+[Part 5 completion report](docs/part5_completion_report.md). DRL is the next
+planned research phase. No meta-learning selector, DRO/CVaR optimizer,
+dashboard, or RAG assistant is implemented. No result establishes real-campus
+performance. See the [development handoff](docs/development_handoff.md) and
+[Part 4 completion report](docs/part4_completion_report.md).
 
 Run the complete test suite from the project root:
 
@@ -169,8 +175,9 @@ network access, datasets, GPUs, or model training.
 Generated datasets in `data/raw/` and `data/processed/`, model artifacts in
 `models/`, experiment outputs in `results/`, common checkpoint formats, caches,
 and local secrets are excluded from Git. Keep source code and configuration
-outside generated-output directories. Git is initialized locally; no commit,
-GitHub repository, or push is included in this setup.
+outside generated-output directories. This checkout has a configured GitHub
+remote. Training checkpoints and evaluation artifacts are stored in Google
+Drive and are not assumed to be present in this local checkout.
 
 ## Development practices and optional integrations
 

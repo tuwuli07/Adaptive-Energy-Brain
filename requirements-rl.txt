@@ -1,0 +1,4 @@
+# Optional adapter only; no training framework or environment extras.
+gymnasium==1.2.3
+# Mandatory transitive dependency pinned to the verified installation.
+Farama-Notifications==0.0.6

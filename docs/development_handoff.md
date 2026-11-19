@@ -2,13 +2,63 @@
 
 ## Current phase
 
-Part 5 — GNN-Transformer energy forecasting. Parts 1–4 and Parts 5.1–5.8 are
-implemented. Part 5.9 provides the Colab GPU training notebook and guide;
-successful full GPU training is still unconfirmed. Part 5.10 now provides a
-reproducible final evaluation pipeline, but no final held-out results exist
-because no full-training checkpoint is available. Windows storage setup
-directs project caches, temporary files, and new training artifacts to an
-external E: storage root.
+Phase 12 (Adaptive Policy Selection & Contextual Regime Routing) is COMPLETE and VERIFIED. Phase 11 (DRO), Phase 10 (CVaR), Phase 9 (React Frontend), and Part 8 (Unified Comparative Benchmark & Held-Out Test Evaluation) remain authoritative, frozen, and audited.
+
+### 1. Phase 12 Completed Outcomes:
+- **Phase 11 Verification Gaps Resolved:**
+  - Added 35 parameterized primal-dual test cases to `tests/test_dro_math.py`, confirming exact match ($< 10^{-7}$) against an independently solved primal LP across 5 distributions and 7 ambiguity radii $\epsilon \in [0.0, 2.0]$.
+  - Confirmed nominal recovery at $\epsilon=0$ ($2,669.39 normal, $5,219.65 compound).
+  - Confirmed Phase 8.5 test evaluation hashes remain byte-identical: `305B769D...` (JSON) and `8E12C074...` (CSV).
+- **Causal Adaptive Policy Selector (`src/control/adaptive_policy_selector.py`):**
+  - Inherits from `BaselineController`. Extracts strictly causal features at decision step $t$ from `AgentObservation`.
+  - Maps operating regimes to specialized controllers: Solar Self-Consumption (`mpc_gnn_transformer`), Compound Stress / Robustness (`mpc_dro_robust`), Peak Tariff Tail-Hedging (`mpc_cvar_balanced`), and Nominal Base Dispatch (`mpc_gnn_transformer`).
+  - Implements multi-tier fallback cascade: Target Controller $\to$ GNN-MPC $\to$ Seasonal MPC $\to$ Zero-Action.
+  - Enforces inverter power bounds strictly clamped to $\pm 150.0$ kW.
+- **Scientific Framing & Classification:**
+  - Accurately cataloged as **Adaptive Policy Selection (Contextual Regime Routing)**, distinguishing it from gradient-based meta-learning (MAML/RL²), which is identified as future multi-task research.
+- **Experimental Verification (`scripts/run_adaptive_experiments.py`):**
+  - Evaluated 6 controllers across 5 conditions on 72-hour development slice.
+  - Under compound stress, demonstrated dynamic policy switching: 33.8% DRO-MPC, 59.2% GNN-MPC, 7.0% CVaR-MPC, with 0 physical violations.
+  - Low computational overhead: $< 1.5$ ms feature extraction, ~54–80 ms decision cycle.
+- **Full-Stack Application Integration:**
+  - Extended REST API (`src/dashboard/api.py`): Added `/api/adaptive/results` and `/api/adaptive/trajectory`.
+  - Added React Page 10 (`frontend/src/pages/AdaptiveControl.jsx`) with 72-hour interactive scrubber, telemetry inspector, Recharts power chart, regime architecture cards, and comparative matrix.
+- **Test Suite & Verification:**
+  - `tests/test_adaptive_policy_selector.py`: 9/9 passed.
+  - `tests/test_dro_math.py`: 39/39 passed.
+  - `tests/test_dashboard_api.py`: 7/7 passed.
+  - Frontend: `npm test` 5/5 passed, `npm run build` clean (14.87s).
+  - Phase 10–12 suite: 65/65 tests passed.
+
+Next task: Phase 12 is COMPLETE. Complete development by November 18, 2026. Await project owner authorization before proceeding to RAG assistant, Gemini integration, or final submission packaging.
+
+### 2. Phase 9 Completed Outcomes:
+- **Architecture Assessment:** Inspected complete repository structure, GNN forecasting, MPC, PPO, simulator, and comparative runner modules. Identified all authoritative artifacts. Formulated read-only frontend architecture plan in `docs/frontend_architecture_assessment.md`.
+- **Modern React (JSX) Application (`frontend/`):**
+  - Scaffolded with Vite 6, Tailwind CSS 3, Recharts 2.13, Lucide React, and React Router v6.
+  - Implemented 8 dedicated pages:
+    1. Overview Dashboard (`/`): Executive KPIs, 48h microgrid power balance, live battery state gauge, savings vs zero-action.
+    2. Energy Monitoring (`/energy`): Labeled **Historical Simulation Data**, high-resolution multi-scale telemetry (24h, 7d, 14d, all 1,313h), building demand, solar, wind, imports, exports, and battery dispatch.
+    3. AI Energy Forecasting (`/forecasting`): GNN-Transformer model architecture, 24h horizon predictions vs ground truth, masked target loss documentation, and MAE/RMSE breakdown by horizon.
+    4. Battery Management (`/battery`): Physical specs (500 kWh, 250 kW, $\eta=95\%$, 10%–90% bounds), degradation rate ($0.02/kWh), FCE, and SOC dispatch curves across any of the 7 controllers.
+    5. Controller Benchmark (`/comparison`): 7-controller comparative table with partition switcher (Held-Out Test vs Validation), causality badges, and one-click CSV export.
+    6. Simulation Explorer (`/explorer`): Trajectory browser, step-by-step cost breakdown, and raw hourly dispatch downloads (CSV and JSON).
+    7. Research Results (`/research`): Formally audited Phase 8.5 outcomes ($36,532.73 GNN-MPC cost, $5.18 advantage, 0.0142% delta, proof of identical 31,540.80 kWh throughput, winter heuristic inversion, and limitations).
+    8. About the Project (`/about`): System mission, 4-stage microgrid workflow diagram, MPC vs PPO vs Heuristics comparison, and technology stack reference.
+- **Read-Only Python REST API Service (`src/dashboard/api.py`):**
+  - Built with Python standard library `http.server.ThreadingHTTPServer` on port 8000 for zero external dependency overhead.
+  - Provides 9 endpoints: `/api/health`, `/api/overview`, `/api/energy/timeseries`, `/api/forecast/metrics`, `/api/battery/dispatch`, `/api/controllers`, `/api/controllers/comparison`, `/api/research/results`, `/api/simulations/export`.
+  - Supports downsampling, limit, and start parameters for responsive 60 FPS browser charting.
+- **Resilient Standalone Fallback:** React API client (`frontend/src/api/client.js`) automatically falls back to bundled Phase 8.5 research data (`frontend/src/api/fallbackData.js`) if the Python backend is stopped, guaranteeing 100% offline functionality.
+- **Comprehensive Verification:**
+  - Production build: `npm run build` completed cleanly in 50.25s (`dist/assets/index-eodOmOpR.js` 697 kB, `dist/assets/index-B7_hfgH8.css` 28.8 kB).
+  - Frontend unit tests: `node --test src/utils/formatters.test.js` passed (5/5 tests in 0.48s).
+  - Backend API unit tests: `pytest tests/test_dashboard_api.py` passed (4/4 tests in 0.17s).
+  - Full regression test suite: 101/101 tests passed in 160.89s.
+  - Data integrity: 24/24 SHA-256 hashes of test evaluation artifacts verified with zero mismatches.
+  - Git tree: Clean; zero unauthorized commits or branch mutations.
+
+Next task: Phase 9 is COMPLETE. Await project owner review of the React frontend application and final platform status.
 
 ## Completed components
 
@@ -114,27 +164,500 @@ external E: storage root.
   Model and persistence, seasonal-persistence, and history-average metrics use
   the same forecast origins, target timestamps, masks, and physical kW units.
   BUS01 is excluded. JSON, compressed aligned predictions, and labeled plots
-  are written to a new non-overwriting output directory. The actual held-out
-  test data has not been evaluated.
+  are written to a new non-overwriting output directory. The user-reported
+  final test evaluation is summarized in
+  [the Part 5 completion report](part5_completion_report.md).
+- Part 5.11 integration readiness: [the standalone adapter](../src/forecasting/integration.py)
+  validates node order, target masking, physical kW, provenance references,
+  hourly targets and issue/cutoff causality, then attaches campus-demand,
+  solar and wind `ForecastFeature`s to an existing causal observation.
+  Negative predictions are rejected by default; optional projection to zero
+  must be explicitly selected and is recorded in provenance. Feature
+  `model_id` includes both method and experiment identifiers. It leaves
+  simulator dispatch and controller APIs unchanged.
 
 Parts 1–4 completion evidence is in
 [Part 2](part2_completion_report.md), [Part 3](part3_completion_report.md),
-and [Part 4](part4_completion_report.md). The forecasting package now includes
-spatial and temporal encoders, an integrated forecasting model, and a reusable
-training/validation pipeline. No full-scale training run or production
-checkpoint exists.
+and [Part 4](part4_completion_report.md). The Part 5.9 run and Part 5.10
+evaluation are reported complete; their artifacts are in Google Drive, not
+assumed present in this local checkout. This evidence does not establish
+real-campus performance or deployment readiness.
 
-## Current task
+## Current task: completed paired reward-scale diagnostic
 
-Part 5.9 local readiness review is complete. The Colab notebook preflight now
-requires the complete train/validation/test bundle and verifies that the test
-partition is represented in the checksum manifest without loading it. The
-local Git repository still has no commits or remote; no files have been
-published. Run the Part 5.9 Colab workflow only after reviewing and publishing
-an approved source revision and uploading the bundle to Drive. No GPU smoke
-test, full training, checkpoint, or final Part 5.10 evaluation has occurred.
+See the [reward-scale results](ppo_diagnostic_report.md#paired-reward-scale-critic-diagnostic)
+and [diagnostic guide](ppo_diagnostic_guide.md#paired-reward-scale-diagnostic).
+Exactly two fresh CPU runs completed: control scale 1.0 and treatment scale
+0.0025, with gamma 0.99, seed 0, learning rate 3e-4, and 8192 transitions each.
+All other PPO settings matched. Paired preflight and both actual runs verified the
+same initial policy tensors and all 49 training-window/child-seed draws. Each run
+completed 64 rollout updates and 512 optimizer steps; checkpoints at
+0/2048/4096/6144/8192 reloaded successfully. No run was repeated or replaced.
 
-## Verified tests
+Pre-training and post-run focused regression suites each passed 24 tests
+(198.11 and 159.44 seconds). The complete offline suite and its final exit status
+passed: **910 passed, 0 failures, 0 errors, 0 skips**, in 393.68 seconds
+(JUnit duration 393.455 seconds), with exit status 0. Pytest reported one existing
+Gymnasium warning that the observation-space Box maximum is infinity.
+The saved evidence is `results/verification/part6_4_reward_scale_full.log` and
+`results/verification/part6_4_reward_scale_full.xml`.
+
+Training-call wall times were 283.639 seconds (control) and 256.288 seconds
+(treatment); 4096/8192 validation took 130.558/474.415 seconds. Orchestration
+took 1166.972 seconds. Artifact-only analysis verified all 83 run hashes, all
+10 checkpoint reloads, both frozen validation stages, and unchanged policy and
+optimizer state during inference. The 169 pre-existing files in the experiments
+directory matched their pre-run SHA-256 inventory. Control at 4096 exactly
+matched the original pilot and previous gamma-control policy and optimizer.
+
+The treatment's median explained variance over the final eight updates was
+0.83183 versus 0.0000303 for control. Mean per-update dollar-equivalent RMSE was
+$106.89 for treatment versus $486.57 for control, a 78.03% reduction using a
+common denominator of $1514.57. The reference
+thresholds (explained variance >=0.2; normalized RMSE reduction >=25%) were both
+met as critic diagnostic signals. Control clipped globally on 100% of optimizer
+steps; treatment on 90.43%. Median critic/actor pre-clipping norm ratios were
+7694.37 and 2.27. Treatment's median actual actor update norm increased to
+0.008981 from 0.000384, but this did not produce a better deterministic policy.
+
+At both validation checkpoints, neither PPO policy requested charging; both
+requested discharge in all 1313 scored hours and ended at 50 kWh / SOC 0.1. Costs
+were $43839.8993/$43835.7713 at 4096 and $43835.7713/$43835.7713 at 8192
+(control/treatment). Treatment saturated its discharge request at 150 kW by
+8192. All six policies had zero physical violations and unserved energy. The
+price-aware baseline ended at 450 kWh for $43674.7778, as a descriptive reference
+only. No held-out test partition was accessed, no multi-seed study was run, and
+no simulator physics or operating-cost accounting was changed.
+
+Run root: `E:\AdaptiveEnergyBrainStorage\experiments\part6_4_reward_scale_diagnostic_20261114`.
+Review root: `E:\AdaptiveEnergyBrainStorage\experiments\part6_4_reward_scale_diagnostic_review_final_20261114`.
+The reward-scale artifact-only analysis and review manifest are stored there.
+
+## Previous task: completed paired gamma diagnostic
+
+See [the diagnostic report](ppo_diagnostic_report.md) for complete measurements,
+limitations, and recommendations, and [the diagnostic guide](ppo_diagnostic_guide.md)
+for the instrumentation contract. The completed original pilot remains below.
+
+New files: `configs/ppo_gamma_diagnostic.yaml`, `src/rl/diagnostics.py`,
+`src/rl/diagnostic_experiment.py`, `scripts/run_ppo_diagnostic.py`,
+`tests/test_ppo_diagnostics.py`, `docs/ppo_diagnostic_guide.md`, and
+`docs/ppo_diagnostic_report.md`. Existing `src/rl/training.py` gained optional
+read-only diagnostics and a shared model constructor; the metadata schema permits
+`gamma_diagnostic`. Installed SB3 was not edited. All other pre-existing source,
+configuration, dependency, and Part 5 work is preserved.
+
+Both runs used seed 0, LR 3e-4, 168-hour training-only windows, and 8192 transitions,
+with gamma 0.99/0.999 as the only differing setting. Preflight and actual execution
+verified identical initial weights and all 49 window/child-seed draws. Each run
+completed 64 rollout updates and 512 optimizer steps. Ten checkpoints at
+0/2048/4096/6144/8192 verified and reloaded. The control 4096 policy and optimizer
+exactly match original pilot A. All four PPO validations remained frozen.
+
+Training-call wall times were 291.297/237.979 seconds. Overall execution was
+721.945 seconds; validation stages took 89.212/88.988 seconds. At 4096 the
+control/treatment costs were 43839.8993/43841.1123 USD; at 8192 they were
+43835.7713/43837.4853 USD. Every PPO replay ended at SOC 0.1 / 50 kWh (change
+-200 kWh), with no charging requests and no physical violations or shortage.
+The price-aware reference cost 43674.7778 USD and ended at SOC 0.9 / 450 kWh.
+These are descriptive single-seed hypothetical-campus results, not a winner claim.
+
+Critic explained variance remained near zero. Final-rollout value means were
+about -16 against targets averaging -401/-456. Median critic gradient norms were
+3238/3673 versus actor 0.423/0.417; all updates invoked global clipping. Stochastic
+training charged on 41.43%/42.69% of samples, with action-bound clipping on
+33.54%/32.85%. This exploratory charging did not become deterministic charging.
+Gradient norms observe the actual weighted combined loss. Adam's adaptive scaling
+means the clipping measurements alone do not prove causal actor suppression.
+
+### Diagnostic verification and artifact locations
+
+All commands ran from the project root using the existing `.venv`, with
+`OMP_NUM_THREADS=1`, `MKL_NUM_THREADS=1`, and `PYTHONUNBUFFERED=1`.
+
+Pre-training focused command:
+
+```powershell
+.venv\Scripts\python.exe -B -m pytest tests/test_ppo_diagnostics.py tests/test_ppo_validation.py tests/test_rl_episodes.py tests/test_rl_training.py tests/test_rl_environment.py tests/test_simulation_environment.py tests/test_simulation_state.py tests/test_simulation_metrics.py tests/test_baseline_interface.py tests/test_baseline_runner.py tests/test_forecasting_integration.py -q -p no:cacheprovider --basetemp=results/verification/part6_4_diagnostic_focused --junitxml=results/verification/part6_4_diagnostic_focused.xml
+```
+
+Result: **188 passed in 132.27 seconds**, one expected Gymnasium unbounded-space
+warning. This includes identical instrumented/uninstrumented tensors, optimizer
+state, RNGs, episode accounting, actual bootstrap values, gradient-clipping
+identities, failure evidence retention, paired inputs, and partition read guards.
+
+Approved real-data execution (two jobs only):
+
+```powershell
+.venv\Scripts\python.exe -B scripts/run_ppo_diagnostic.py --split-root data/processed/splits_hypothetical_campus_v1 --output E:\AdaptiveEnergyBrainStorage\experiments\part6_4_gamma_diagnostic_20261114
+```
+
+Post-run regression command:
+
+```powershell
+.venv\Scripts\python.exe -B -m pytest tests/test_ppo_diagnostics.py tests/test_rl_training.py tests/test_ppo_validation.py -q -p no:cacheprovider --basetemp=results/verification/part6_4_diagnostic_post --junitxml=results/verification/part6_4_diagnostic_post.xml
+```
+
+Result: **17 passed in 163.52 seconds**.
+
+Final full-suite command:
+
+```powershell
+.venv\Scripts\python.exe -B -m pytest tests -q -p no:cacheprovider --basetemp=results/verification/part6_4_diagnostic_full --junitxml=results/verification/part6_4_diagnostic_full.xml
+```
+
+The saved full-suite log and JUnit XML are complete; no pytest process remained.
+The suite passed **903 tests**, with **0 failures, 0 errors, and 0 skips**, in
+**340.85 seconds** (JUnit duration 340.695 seconds). Pytest reported one existing
+Gymnasium warning: the observation-space Box maximum is infinity. The completed
+successful pytest summary implies exit status **0**; the original shell exit-code
+side channel was not separately saved. The suite was not rerun.
+
+```text
+results/verification/part6_4_diagnostic_full.log
+results/verification/part6_4_diagnostic_full.xml
+```
+
+Run artifacts: `E:\AdaptiveEnergyBrainStorage\experiments\part6_4_gamma_diagnostic_20261114`.
+The immutable run manifest inventories 81 verified artifact hashes and retains
+configuration/source/data/software provenance, statuses, paired-input evidence,
+telemetry, checkpoint bundles, and native validation reports/trajectories.
+Review artifacts: `E:\AdaptiveEnergyBrainStorage\experiments\part6_4_gamma_diagnostic_review_20261114`.
+These contain reproducible artifact-only analysis code, metrics, and two visually
+inspected plots. No held-out test files were opened. The previous pilot and review
+artifacts remain intact. Logs and JUnit XML are in `results/verification/`.
+
+<a id="current-task-part-64-completed-pilot"></a>
+
+## Part 6.4 original completed pilot
+
+Implemented `src/evaluation/ppo_validation.py`, `src/rl/experiments.py`,
+`scripts/run_ppo_experiments.py`, `scripts/validate_ppo.py`,
+`configs/ppo_validation.yaml`, and `tests/test_ppo_validation.py`.
+Updated RL environment action reuse, partition loading, checkpoint scheduling,
+metadata schema, DRL contracts, and [the validation guide](ppo_validation_guide.md).
+Training reads only verified train files; validation reads only verified
+validation files. The held-out test partition was not evaluated. Frozen PPO
+uses the existing observation encoder and shared Gymnasium action conversion.
+All controllers use the existing native replay and accounting implementation.
+
+The paired pilot uses seed 0, rates A=3e-4 and B=1e-4, 168-hour sampled training
+windows, and otherwise identical CPU PPO settings. Initial policy tensors and
+all 25 sampled windows/child seeds were verified identical. Each run completed
+4,096 transitions, 32 rollout updates, 128 optimization epochs, and 256 optimizer
+steps. Published checkpoints are at 0, 2,048, and 4,096 transitions. Final bundles
+reloaded successfully with identical deterministic actions and finite parameters.
+Version-1 Part 6.3 smoke artifacts remain readable; continuation still restores
+optimizer/RNG/sampler state into fresh episodes without claiming uninterrupted
+trajectory equivalence.
+
+| Pilot | Training wall time (s) | Learning time (s) | Validation time (s) |
+| --- | ---: | ---: | ---: |
+| A | 85.222 | 64.510 | 15.877 |
+| B | 73.667 | 65.765 | 17.863 |
+
+The orchestrator recorded 261.808 seconds overall; validation including all six
+controllers and reports took 99.537 seconds. Timers exclude interpreter startup.
+Both runs and all six evaluations completed; no failed seeds were replaced.
+
+Validation uses 1,313 scored transitions, initial SOC 0.5 and stored energy
+250 kWh. The following costs are USD under the configured hypothetical tariff;
+this is synthetic campus evidence, not a measured-campus performance claim.
+
+| Controller | Net cost | Final SOC | Final energy (kWh) | Energy change (kWh) | Replay seconds |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| PPO A | 43839.8993 | 0.1 | 50 | -200 | 15.877 |
+| PPO B | 43844.5483 | 0.1 | 50 | -200 | 17.863 |
+| Zero action | 43866.1713 | 0.5 | 250 | 0 | 20.696 |
+| Self consumption | 43835.7713 | 0.1 | 50 | -200 | 16.509 |
+| Price aware | 43674.7778 | 0.9 | 450 | +200 | 11.644 |
+| Battery preserving | 43850.9713 | 0.3 | 150 | -100 | 10.692 |
+
+All controllers served 438,362.5548 kWh demand, used 112,806.4409 kWh renewable
+energy, and had zero shortage, curtailment, or physical violations. Maximum
+absolute balance residual was 4.2633e-14. Price aware imported 327,816.9005 kWh,
+exported 46.5137 kWh, and incurred 786.1855 USD degradation on 39,309.2729 kWh
+throughput. PPO A/B each imported 325,366.1139 kWh, exported zero, and incurred
+3.8 USD degradation on 190 kWh throughput. Full physical metrics and trajectories
+are retained in validation JSON/CSV artifacts.
+
+Both PPO policies requested discharge at every hour and never recharged. A reached
+the SOC floor at scored hour 5; B at hour 14. Mean requested discharge was 37.0791
+and 13.1206 kW, respectively. Feasibility adjustments occurred at 1,309 and 1,300
+hours; these are safe dispatcher constraints, not physical violations. Frozen
+policy and optimizer fingerprints remained unchanged. Low explained variance
+(approximately 0.0004/0.0010) and persistent discharge warrant policy/critic review
+before longer training; no automatic reward or configuration changes were made.
+
+A costs 4.6490 USD less than B at equal terminal energy in this pilot. Price aware
+is the descriptive six-controller Pareto frontier on this one replay. Neither
+observation establishes a research winner. One seed cannot estimate training
+variability; hourly points and overlapping windows are not independent samples.
+The planned primary comparison remains five paired seeds at exactly 32,768
+transitions. Tradeoffs between cost and terminal energy imply no unique winner.
+Terminal-energy valuation and shortage-aware reliability remain unresolved.
+
+### Verification and provenance
+
+With `OMP_NUM_THREADS=1`, `MKL_NUM_THREADS=1`, and `PYTHONUNBUFFERED=1`, the focused
+command was `.venv\Scripts\python.exe -m pytest tests/test_ppo_validation.py
+tests/test_rl_episodes.py tests/test_rl_training.py tests/test_rl_environment.py
+tests/test_simulation_environment.py tests/test_simulation_state.py
+tests/test_simulation_metrics.py tests/test_baseline_interface.py
+tests/test_baseline_runner.py tests/test_forecasting_integration.py -q
+-p no:cacheprovider --basetemp=results/verification/part6_4_focused_verified
+--junitxml=results/verification/part6_4_focused.xml`: **184 passed in 122.80 s**.
+
+The final full command was `.venv\Scripts\python.exe -m pytest tests -q
+-p no:cacheprovider --basetemp=results/verification/part6_4_full_final
+--junitxml=results/verification/part6_4_full_final.xml`: **899 passed in 296.62 s**.
+Both had one existing Gymnasium warning about the intentionally unbounded
+observation maximum. Logs/XML are in `results/verification/`. The full suite
+also passed before pilot execution (899 tests in 283.77 s).
+Final `git diff --check` passed (existing LF/CRLF notices only). All 53 pilot
+and five review artifact hashes were rechecked; the post-pilot executable change
+is confined to plot layout. Python syntax checks passed.
+
+Pilot command: `.venv\Scripts\python.exe scripts/run_ppo_experiments.py
+--split-root data/processed/splits_hypothetical_campus_v1
+--output E:\AdaptiveEnergyBrainStorage\experiments\part6_4_pilot_20261113`.
+
+Artifacts: `E:\AdaptiveEnergyBrainStorage\experiments\part6_4_pilot_20261113`.
+The immutable pilot has protocol, run statuses, source/config snapshots, data
+hashes, software versions, logs, checkpoint bundles, screening, validation JSON,
+comparison/hourly CSVs, and diagnostic plots. Its 53 artifact hashes were verified.
+A subsequent plot-only layout correction has separate provenance and clearer
+plots at `E:\AdaptiveEnergyBrainStorage\experiments\part6_4_pilot_review_20261113`;
+`review.json` links parent hashes, paired-run checks, five review artifact hashes,
+and compute assumptions. Original pilot artifacts were not rewritten.
+
+Linear extrapolation for ten 32,768-transition runs plus 30 checkpoint validation
+replays and one baseline set is approximately 1.6-2.0 hours on this CPU setup.
+Reserve 2-3 hours for host/I/O variation and reporting. This is an estimate from
+short pilots, not a completed study or guaranteed runtime.
+
+## Part 6.3 implementation
+
+Part 6.3 implements the approved sampling and PPO infrastructure in
+`src/rl/episodes.py`, `src/rl/training.py`, and `scripts/train_ppo.py`.
+`configs/ppo_training.yaml` defines the CPU smoke settings and
+`configs/rl_experiment_metadata.schema.json` defines versioned run metadata.
+`requirements-rl-training.txt` pins the optional training dependency.
+The bounded synthetic tests are `tests/test_rl_episodes.py` and
+`tests/test_rl_training.py`. Usage and recovery semantics appear in
+[the PPO guide](ppo_training_guide.md).
+
+The train-selective loader verifies training files and shared preprocessing
+metadata. It rejects train manifest entries or source paths escaping their
+partition, missing hashes, wrong split labels, and mismatched coverage.
+A reset samples uniformly with replacement from valid overlapping 168-hour
+training windows, each including one additional completed-history row.
+The causal 15-feature adapter, power/price references 1000/1, static-rating
+BatteryAction conversion, committed-cost reward, and truncation semantics apply.
+
+PPO uses one CPU environment and one PyTorch thread, MlpPolicy with separate
+[64,64] Tanh networks, learning rate 0.0003, 128-step rollouts, batch 64,
+four epochs, gamma 0.99, GAE lambda 0.95, clip 0.2, entropy coefficient 0,
+value coefficient 0.5, gradient norm 0.5, normalized advantages, and seed 0.
+The infrastructure demonstration budget is 512 transitions.
+
+Checkpoints capture completed rollout updates, optimizer moments/counters,
+global RNGs, and sampler state. A verified manifest is the atomic bundle commit
+marker, followed by atomic latest-pointer publication. Partial directories are
+rejected by the loader and retained as diagnostic evidence. An initial step-zero
+bundle supports recovery when the first update fails. Continuation verifies
+source/config/data/software contracts and begins fresh episodes with restored
+optimizer/RNG/sampler state. Its trajectory can differ from uninterrupted
+training. Interruptions/failures preserve the last published checkpoint and
+record status, traceback, collected steps, and committed-checkpoint steps.
+
+Terminal SOC treatment remains open before comparative claims. Shortage-aware
+training requires an approved reliability objective because the unserved-demand
+coefficient is zero. This workflow uses error-on-shortage, normal-operation
+training data. The demonstration verifies infrastructure behavior.
+
+## Part 6.3 verification
+
+The dependency resolver proposed only Stable-Baselines3 2.7.1, and installation
+completed with that addition. The project interpreter's pip check reported no
+broken requirements. The exact dependency commands were
+
+```powershell
+.\.venv\Scripts\python.exe -B -m pip install --dry-run --no-cache-dir --index-url https://pypi.org/simple stable-baselines3==2.7.1
+.\.venv\Scripts\python.exe -B -m pip install --no-cache-dir --index-url https://pypi.org/simple stable-baselines3==2.7.1
+.\.venv\Scripts\python.exe -m pip check
+```
+
+The final 14 new tests verify train-only read guards through complete training
+and continuation, partition boundary safety, seeded overlapping sampling,
+32-transition CPU learning, same-seed local parameter reproducibility,
+optimizer moments and RNG/sampler restoration, deterministic checkpoint reload,
+truncation/final-observation handling, corruption rejection, safe publication,
+and interruption during an optimizer update.
+
+The final focused command passed **178 tests** in **88.28 seconds** with one
+expected Gymnasium warning about intentionally infinite observation bounds.
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_rl_episodes.py tests/test_rl_training.py tests/test_rl_environment.py tests/test_simulation_environment.py tests/test_simulation_state.py tests/test_simulation_metrics.py tests/test_baseline_interface.py tests/test_baseline_runner.py tests/test_forecasting_integration.py -q -p no:cacheprovider --basetemp=results/verification/part6_3_focused_verified
+```
+
+Tests use fresh ignored project-local temporary directories and run with the
+Windows access needed by pytest's private-directory ACLs. Initial development
+tests exposed a directory-renaming sharing error during checkpoint publication.
+The final implementation publishes a manifest atomically inside an exclusively
+created step directory, avoiding that rename. Synthetic continuation advanced
+32 to 64 cumulative transitions and four to eight optimizer steps. Initial
+continuation bundles preserved saved optimizer moments and global/sampler RNG
+state. Failed/interrupted tests retained the preceding valid bundle.
+
+## Part 6.3 final acceptance
+
+Final verification completed on 2026-11-13. The complete offline suite passed
+**893 tests** in **368.07 seconds**, with zero failures, errors, or skips.
+The single warning is the expected Gymnasium advisory about infinite observation
+bounds. The saved XML report independently confirms those counts.
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --basetemp=results/verification/part6_3_full_20261113_final --junitxml=results/verification/part6_3_full_20261113.xml
+```
+
+The final run's console output is retained in
+`results/verification/part6_3_full_20261113.log` and its JUnit report in
+`results/verification/part6_3_full_20261113.xml`. An earlier full-suite session's
+final tool output became unavailable. The final rerun supplies durable results.
+The approved 512-transition demonstration was retained and verified again.
+
+Source/configuration syntax, documentation links, whitespace, and
+`git diff --check` passed. The implementation adds nine files and updates the
+three approved DRL/handoff documents. The earlier before/after inventory
+confirmed that all other pre-existing files and installed package versions were
+preserved, with Stable-Baselines3 2.7.1 the sole package addition. During final
+closure, only approved documentation files were edited. All 91 archived
+source/config files match the verified smoke-run snapshot, and all 22 recorded
+run artifacts retain their hashes. pip check reports no broken requirements.
+
+Part 6.3 acceptance criteria are satisfied for the approved infrastructure
+scope. Checkpoint continuation, optimizer moments, RNG/sampler restoration,
+train-only access, safe publication, and interruption recovery have synthetic
+test coverage. Fresh-episode continuation can diverge from uninterrupted
+learning. Terminal SOC and shortage-aware reliability remain unresolved research
+decisions. Existing uncommitted work is preserved, and no commit or push was
+performed. Part 6.4 and research-scale training await explicit approval.
+
+## Part 6.3 approved training-partition demonstration
+
+The CLI completed successfully with this command
+
+```powershell
+.\.venv\Scripts\python.exe scripts/train_ppo.py --split-root data/processed/splits_hypothetical_campus_v1 --output E:\AdaptiveEnergyBrainStorage\experiments\part6_3_ppo_smoke_20261112
+```
+
+The loader verified **6,132 training rows** from ten training CSV/metadata files.
+The run collected **512 transitions**, completed **four rollout updates** and
+**16 epochs**, and performed **32 minibatch optimizer steps**. Four sampled
+windows were started, three 168-hour episodes finished, and the final episode
+contributed eight transitions. Pipeline runtime was **38.5280 seconds**, including
+**13.8840 seconds** in learn calls. Measured CLI wall time, including imports and
+final output, was **53.4839 seconds**. The pipeline timer includes data loading,
+construction, logging, checkpoint publication, and reload/inference verification,
+and is recorded before the final artifact inventory write.
+
+The run directory is
+`E:\AdaptiveEnergyBrainStorage\experiments\part6_3_ppo_smoke_20261112`.
+Its final bundle is `checkpoints/step_000000512`, alongside step-zero and
+128/256/384-step bundles. `experiment.json` records completed status, source
+revision/dirty status, source/config snapshots, training provenance, settings,
+versions, seeds, runtime, progress, hashes, and verification flags. Additional
+artifacts include `resolved_config.json`, `source_manifest.json`,
+`source_snapshot.zip`, `episodes.jsonl`, `monitor.csv`, `logs/progress.csv`,
+and `latest_checkpoint.json`.
+
+Verification confirmed changed and finite parameters, finite loss metrics,
+checkpoint reload, exactly equal deterministic actions after reload, and a
+successful inference step through a fixed training window. Independent SHA-256
+checks reconciled all **22 recorded artifacts**, the final bundle manifest,
+and model/state hashes. The final manifest SHA-256 is
+`8baeb22c01ad014e8b10f746940b128ca99e54e802e8b004a41461a04b2dbb04`.
+The checkpoint remains in external experiment storage. These checks support
+infrastructure acceptance on synthetic data. Terminal SOC, reliability, and
+research-scale policy comparisons remain later decisions.
+
+## Part 6.2 verification
+
+The resolver dry run proposed only Gymnasium 1.2.3 and its missing mandatory
+Farama-Notifications 0.0.6 dependency. Installation completed with those additions
+only; a before/after package inventory verified no existing version changes.
+`python -m pip check` using the project interpreter reported no broken requirements.
+Stable-Baselines3 was absent at the end of Part 6.2. Exact dependency commands:
+
+```powershell
+.\.venv\Scripts\python.exe -B -m pip install --dry-run --no-cache-dir --index-url https://pypi.org/simple gymnasium==1.2.3
+.\.venv\Scripts\python.exe -B -m pip install --no-cache-dir --index-url https://pypi.org/simple gymnasium==1.2.3 Farama-Notifications==0.0.6
+.\.venv\Scripts\python.exe -m pip check
+```
+
+Focused regressions passed **164 tests** in **28.44 seconds**, with one advisory
+warning about the intentionally infinite observation-space maximum. This includes
+all 51 adapter tests and Gymnasium check_env (render checking disabled because
+rendering is not implemented), plus simulator, state, metrics, baseline, and
+forecast-adapter regressions:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_rl_environment.py tests/test_simulation_environment.py tests/test_simulation_state.py tests/test_simulation_metrics.py tests/test_baseline_interface.py tests/test_baseline_runner.py tests/test_forecasting_integration.py -q -p no:cacheprovider --basetemp=results/verification/part6_2_focused_verified
+```
+
+Windows sandbox ACLs prevented access to pytest private temporary directories.
+Earlier attempts reported fixture setup errors; the successful command ran
+outside that restriction, with a fresh ignored project-local temporary directory.
+An earlier test run also identified full dispatch-record serialization as
+incompatible with immutable mapping proxies; diagnostics now explicitly select
+committed metrics and residuals instead of dumping the entire record.
+
+The complete offline suite passed **879 tests** in **192.36 seconds**, with
+the same single advisory warning and no failures or skipped tests:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider --basetemp=results/verification/part6_2_full_verified
+git diff --check
+```
+
+The full suite used the same accessible, fresh project-local temp policy as the
+successful focused run. git diff --check passed (only existing Windows line-
+ending notices appeared). Read-only checks verified syntax of the new Python
+files, whitespace/code fences, and all 39 relative links in the three updated
+documents. SHA-256 comparison against the pre-edit inventory confirmed only the
+three approved documents changed among existing files; the five new files are
+exactly the approved adapter, encoder, config, requirements, and tests. Existing
+Part 5 files, simulator/baselines/forecasting, and package versions are unchanged.
+No source files were removed. Part 6.2 functional acceptance criteria are met.
+No held-out project data, training, commit, or push was used for this milestone.
+
+## Part 6.1 verification
+
+Documentation-only checks on 2026-11-12 used the existing interpreter:
+
+```powershell
+git diff --check -- docs/development_handoff.md
+```
+
+Result: passed, with no whitespace errors in the handoff diff. A read-only
+Python check validated relative Markdown link targets in the two new DRL
+documents and compared SHA-256 hashes of all 152 pre-existing tracked/untracked
+non-ignored files against a pre-edit snapshot. Only the approved handoff changed;
+the only added non-ignored files were the two approved DRL documents. Both new
+documents also passed a trailing-whitespace check. No files were removed.
+
+No runtime tests were run for this documentation-only milestone. The Part 5.11
+126/828-test results below are retained historical evidence, not fresh Part 6.1
+verification. No held-out dataset, model checkpoint, or external artifact was
+loaded, and no dependency was installed. No commit or push was performed.
+
+## Historical verification record
+
+The following test counts, local readiness findings, and runtime observations
+are retained as dated evidence from their respective earlier tasks. They are
+not the current status where this handoff gives a later Part 6.2 update.
 
 Commands run from the project root for the completed Part 5.6 task:
 
@@ -228,6 +751,8 @@ tree; no full training was performed.
 
 No dependencies, split/tensor artifacts, simulator code, or Part 4 controllers
 were changed; no full-model training was run.
+This statement describes that earlier local CPU smoke-test task only; the
+separate later Colab training run is summarized in the Part 5 completion report.
 
 Part 5.2 environment evidence remains: Python 3.12.10 and PyTorch 2.7.0+cpu;
 CPU tensor and neural-network forward/backward steps passed, CUDA is
@@ -270,13 +795,16 @@ interpreter:
 The notebook structural and Python-cell syntax checks passed **8 tests**.
 The complete suite passed **792 tests** in 94.60 seconds after the preflight
 change.
-The actual split bundle contains 32 files (7,324,231 bytes), including
+At that earlier readiness snapshot, the actual split bundle contained 32
+files (7,324,231 bytes), including
 train, validation, and test directories; its manifest has 31 checksum
 entries, 10 of which identify test-partition files. The test partition was
-not loaded. The local Git branch is `master`, has no commits, and has no
-configured remote; all project source files remain untracked. Dataset
-partitions, `.venv`, `.env.storage`, and generated results are ignored by
-Git. C:, E:, and F: were present at the time checked, with about 16.00 GB,
+not loaded. That snapshot's local Git branch had no commits or remote and
+project files were untracked. The current checkout is connected to
+`origin/master`; do not infer current branch cleanliness from that older
+observation. Dataset partitions, `.venv`, `.env.storage`, and generated
+results are ignored by Git. C:, E:, and F: were present at the time checked,
+with about 16.00 GB,
 30.87 GB, and 33.92 GB free respectively; the existing `.venv` is on E:.
 These are point-in-time local facts, not a Colab/Drive readiness result.
 
@@ -297,36 +825,47 @@ full-partition epoch-count gates, seven-target masking, physical-unit baseline
 comparison, and non-overwriting JSON/NPZ/plot output. It does not represent
 the held-out project dataset or model performance.
 
+## Part 5.11 verification
+
+The adapter, causal observation, baseline interface/runner, and forecasting
+evaluation regression command passed **126 tests**:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests\test_forecasting_integration.py tests\test_simulation_state.py tests\test_baseline_interface.py tests\test_simulation_environment.py tests\test_baseline_runner.py tests\test_forecasting_evaluation.py -q -p no:cacheprovider
+```
+
+The final complete offline suite passed **828 tests** in **161.17 seconds**:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider
+```
+
+No GPU, Google Drive, external service, model retraining, or test-set tuning
+was used for Part 5.11 verification.
+
 ## Known issues and constraints
 
-- Available datasets and representative Part 3–4 experiments are synthetic
-  and hypothetical; there are no verified measured campus datasets.
-- The held-out test set must remain unused for selection and tuning.
-- Existing simulator, four rule-based baselines, and their interfaces are
-  compatibility boundaries.
-- Only a synthetic hypothetical year is available; `data/raw/` contains no
-  source CSVs and real data source configurations remain pending.
-- The eight-node, 14-edge bidirectional shared-bus graph is a modeling
-  assumption, not measured campus topology or weighted electrical data.
-- The integrated model consumes only the node-history tensor `X`; historical
-  global weather covariates in `global_X` are not currently encoded. No known
-  future covariates are available in the audited dataset. CUDA execution
-  remains unverified locally.
-- Model checkpoints do not embed the graph edges, dataset splits, or train-fitted
-  scalers; pair them with the matching Part 2 preprocessing artifacts.
-- No trained checkpoint exists in `models/` or the external checkpoint
-  storage, and the external experiment directory is empty. The result tree
-  contains earlier Part 3–4 outputs but no Part 5 forecasting evaluation.
-  Final held-out results are therefore intentionally absent.
-- This checkout has no Git commits or configured GitHub remote, so Colab
-  cannot yet check out the required project revision. Publishing is a user
-  action and requires review/approval; no commit or push was performed.
-- The Drive dataset bundle has not been uploaded. Local presence and checksum
-  metadata do not establish Drive persistence.
-- Default local execution is CPU-only. Full-data multi-epoch training and
-  CUDA/Colab behavior remain unverified. The smoke losses use only the first
-  two train batches and first validation batch, so they are not performance
-  estimates and must not be used for model selection.
+- The dataset and all reported forecasting results are synthetic and
+  hypothetical; no measured campus dataset or real topology is available.
+- The reported final test set is for final evaluation only and must not be
+  used for further model selection or tuning.
+- The eight-node, 14-edge bidirectional shared-bus graph is an assumed
+  modeling topology, not measured electrical infrastructure.
+- The forecaster consumes historical node power only; `global_X` weather
+  inputs are not encoded, and the data audit contains no known-future
+  covariates.
+- Training and evaluation outputs are stored in Google Drive, not this local
+  repository. Their locations and reported metrics are user-supplied Colab
+  run details; the external files were not independently inspected from this
+  workspace.
+- The model checkpoint must be paired with its matching graph, data split,
+  and train-fitted preprocessing artifacts; it does not embed those artifacts.
+- Local development remains CPU-only (`torch==2.7.0+cpu`); the supplied
+  Colab run reports successful training on an NVIDIA Tesla T4. Local CUDA
+  inference is not established by that remote run.
+- Seasonal persistence outperformed the GNN-Transformer on the reported
+  aggregate held-out metrics. Do not select the model as a universal
+  forecasting winner or presume forecast inputs improve DRL control.
 - Resume uses the latest epoch's checkpoint and restores optimizer, early
   stopping, and RNG state, but bitwise reproducibility is not guaranteed on
   nondeterministic hardware/kernels. Accumulated training duration and the
@@ -343,25 +882,112 @@ the held-out project dataset or model performance.
   historical values.
 - Seasonal persistence requires at least one full seasonal period (24
   observations by default) and raises an explicit error otherwise.
-- GitHub Spec-Kit, LLM providers, retrieval, Prefect, n8n, and PydanticAI are
-  not installed or configured. See the
-  [AI stack integration plan](ai_stack_integration_plan.md).
-- Local development uses a CPU-only PyTorch wheel; the separately pinned
-  Colab CUDA wheel is not installed automatically. The Colab notebook prefers
-  a CUDA-capable PyTorch already present in the selected runtime.
-- Exact installed ML runtime: `torch==2.7.0+cpu`; PyTorch reports no bundled
-  CUDA runtime. The Colab wheel is separately pinned as `torch==2.7.0+cu128`.
-- Do not implement RAG in Part 5, call an LLM from the GNN-Transformer training
-  loop, or add API keys.
+- GitHub Spec-Kit, LLM providers, retrieval, Prefect, n8n, and PydanticAI
+  remain optional and are not required for the completed forecasting workflow.
+  See the [AI stack integration plan](ai_stack_integration_plan.md).
+- The current PPO policy has infrastructure-smoke evidence. Meta-learning,
+  DRO/CVaR, and forecast-serving integration remain later phases. The forecast
+  adapter retains its standalone boundary-helper role.
 
-## Next task
+## Part 6.4: Secondary economic metric implementation
 
-Manually execute and review the Part 5.9 notebook in Colab with a GPU runtime.
-Confirm the actual Git commit, GPU/software metadata, masked CUDA smoke test,
-full train/validation history, Drive checkpoints, and best-checkpoint
-validation reload; then run Part 5.10 with the matching `best.pt`,
-`experiment.json`, split bundle, and preprocessing artifact. For local Windows
-development, open a fresh VS Code PowerShell terminal so the external storage
-profile is applied. Do not use held-out test results for selection or modify
-the seven-target/graph contracts. Part 5.11 is blocked until the training and
-final evaluation evidence have been reviewed.
+Implemented `src/evaluation/inventory_accounting.py` and integrated it into
+`src/evaluation/baseline_runner.py` and `src/evaluation/ppo_validation.py`.
+- Formula: `reference_value_usd_per_kwh_dc = (p_offpeak + c_degradation) / eta_charge = (0.12 + 0.02) / 0.95 = 0.14736842105263157 USD/kWh DC`.
+- Adjustment: `inventory_adjustment_usd = (terminal_energy_kwh - initial_energy_kwh) * reference_value_usd_per_kwh_dc`.
+- Metric: `inventory_adjusted_net_operating_cost_usd = raw_net_operating_cost - inventory_adjustment_usd`.
+- Guardrails verified:
+  1. Primary dimensions (`net_operating_cost`, `terminal_energy_kwh`, `terminal_soc`, `dominates()`) remain identical and untouched.
+  2. Training rewards, physical simulator, and episode accounting remain untouched.
+  3. No access to the held-out test partition (`data/processed/splits_hypothetical_campus_v1/test`).
+  4. Verified against exact historical replay values (e.g. Price-Aware $43,645.304080, Zero-Action $43,866.171334, PPO/Self-Consumption $43,865.245018).
+- Verification results:
+  - 24 focused evaluation tests passed in 48.03s (`test_inventory_accounting.py`, `test_baseline_runner.py`, `test_ppo_validation.py`).
+  - 924 complete offline suite tests passed in 178.72s.
+  - All existing historical experiment artifacts in external storage remained pristine with verified SHA-256 hashes.
+
+## Part 6.4: Discrete action adapter implementation and preflight
+
+Implemented `DiscreteActionAdapter` (`gymnasium.spaces.Discrete(3)`) in `src/rl/environment.py`
+and integrated discrete model compatibility into `FrozenPPOController` in `src/evaluation/ppo_validation.py`.
+- Action Mapping:
+  - Action 0 -> -1.0 (requested -150 kW charge, matching `battery.charge_limit_kw`).
+  - Action 1 ->  0.0 (requested    0 kW idle).
+  - Action 2 -> +1.0 (requested +150 kW discharge, matching `battery.discharge_limit_kw`).
+- Guardrails verified:
+  1. Base continuous `MicrogridGymEnvironment` remains completely unmodified.
+  2. Observation schema (15-dim float32), reward calculation, episode boundaries, and physical simulation constraints remain identical.
+  3. Preflight suite passed all 12 tests in `tests/test_discrete_action_adapter.py`.
+  4. Full offline suite passed all 936 tests in 173.65s.
+  5. No new PPO training was launched; no held-out test data was accessed.
+  6. Historical artifacts in external storage remain byte-for-byte identical.
+
+## Part 6.4: Discrete PPO and PBRS diagnostic executions
+
+Executed two paired diagnostic experiments in external storage:
+1. Discrete PPO Treatment (`E:\AdaptiveEnergyBrainStorage\experiments\part6_4_discrete_diagnostic_20261115_treatment`):
+   - Discrete(3), gamma 0.999, reward scale 0.0025, seed 0, 16,384 steps.
+   - Eliminated boundary action clipping (0.0% vs 45% in continuous control).
+   - Validation policy collapsed to 100% discharge requests (net cost $43,835.77, terminal SOC 0.10, adjusted cost $43,865.25).
+2. Potential-Based Reward Shaping Treatment (`E:\AdaptiveEnergyBrainStorage\experiments\part6_4_pbrs_diagnostic_20261115_treatment`):
+   - Mathematically verified policy-invariant shaping: $F(s, a, s') = \gamma \Phi(s') - \Phi(s)$ with $\Phi(s) = v_{\text{ref}} \cdot E(s)$.
+   - Telescoping sum verified to $< 2.2 \times 10^{-14}$; timeout bootstrapping cancellation verified to $< 1.8 \times 10^{-15}$.
+   - Increased exploratory charge steps during training by +33.1% and reduced GAE charge advantage deficit by 25.7% (-$48 to -$35).
+   - Deterministic validation policy remained at 100% discharge (net cost $43,835.77, adjusted cost $43,865.25).
+
+## Part 6.4: Observation sufficiency, policy representability, and heuristic validation
+
+1. Information Equivalence Audit:
+   - Audited `PriceAwareController._select_action` against `drl_observation_v1` (15 features).
+   - Confirmed that baseline decisions depend strictly on `obs[6]` (grid price), `obs[0]` (battery SOC), and static config constants. Zero hidden states or future forecasts are used.
+2. Action Discretization Audit:
+   - In validation replay, `PriceAwareController` requested intermediate power in 113 intervals (8.61%), exclusively due to boundary headroom/reserve limits.
+   - Evaluated deterministic discrete heuristics on 1,313-hour validation split:
+     - Continuous `PriceAwareController`: Net cost $43,674.78, adjusted cost $43,645.30.
+     - Discretized Price-Aware (Sign): Net cost $43,662.24, adjusted cost $43,632.76 (0 violations, 112 boundary adjustments).
+     - Pure Discrete (Price Only): Net cost $43,662.04, adjusted cost $43,632.57 (0 violations, 1,088 adjustments).
+   - Confirms that Discrete(3) actions do not degrade economic performance; faster boundary cycling lowers operating cost.
+3. Analytical MLP Representability:
+   - Proved that the discrete price-aware decision boundary is the intersection of three linear half-spaces in 2D (price, SOC).
+   - A 2-layer [64, 64] MLP (5,379 policy parameters) has ample theoretical capacity to represent this boundary.
+
+## Part 6 Formal Closure
+
+Option D was formally approved. Further model-free PPO diagnostics are stopped.
+See [Part 6 completion report](part6_completion_report.md) for full synthesis, limitations, and archived artifact locations.
+
+## Phase 10: Conditional Value at Risk (CVaR) Risk-Aware MPC
+
+Implemented multi-scenario Rockafellar-Uryasev (2000) linear programming equivalence in `src/control/cvar_mpc_solver.py`, `src/control/cvar_mpc.py`, and `src/control/scenario_generator.py`:
+- Strict nonanticipativity: $P_{\text{chg}, s}[0] = P_{\text{chg}, 0}[0]$ and $P_{\text{dis}, s}[0] = P_{\text{dis}, 0}[0]$.
+- Causal rolling history and nominal GNN lookahead scenario synthesis.
+- Evaluated across 5 stress conditions; achieved 30.5% reduction in maximum single-hour cost peak under compound stress ($164.95/h to $114.71/h) with $167.37 in adjusted cost savings.
+- Formally verified via `tests/test_cvar_math.py`, `tests/test_scenario_generator.py`, and `tests/test_cvar_mpc_controller.py`.
+
+## Phase 11: Distributionally Robust Optimization (DRO) & Project Framing Correction
+
+Implemented distributionally robust optimization over finite-support $L_1$ total-variation probability ambiguity sets $\mathcal{Q} = \{q \ge 0 : \sum_s q_s = 1, \|q - p\|_1 \le \epsilon\}$ via exact LP duality in `src/control/dro_mpc_solver.py`, `src/control/dro_mpc.py`, and `configs/dro_mpc_controller.yaml`:
+- Converted inner worst-case expectation into a joint LP solved via HiGHS in ~82.4 ms on CPU.
+- Verified strong duality match and analytical 2-scenario thresholds in `tests/test_dro_math.py`.
+- Verified nominal recovery at $\epsilon=0$ ($2,669.39 normal, $5,219.65 compound) and physical 150 kW limits in `tests/test_dro_mpc_controller.py`.
+- Executed multi-condition benchmarks and ambiguity sweep ($\epsilon \in [0.0, 2.0]$) in `experiments/phase11_dro_experiments/`.
+- Integrated DRO into REST API (`src/dashboard/api.py`) and React Risk Analytics (`frontend/src/pages/RiskAnalytics.jsx`).
+- Corrected overall project framing: Platform is an autonomous energy management system for renewable communities, microgrids, smart buildings, and commercial facilities; campus is a hypothetical demonstration case study.
+- Corrected battery specification to authoritative 150 kW (500 kWh capacity) across all UI cards, API models, and fallbacks.
+- Verified 20/20 unit tests, 5/5 frontend tests, Vite production build, and pristine Phase 8.5 held-out test hashes (`305B769D...`, `8E12C074...`).
+
+## Phase 12: Adaptive Policy Selection & Contextual Regime Routing
+
+Implemented causal, context-aware adaptive policy selection among specialized microgrid controllers in `src/control/adaptive_policy_selector.py` and `configs/adaptive_policy_selector.yaml`:
+- Resolved Phase 11 DRO duality verification gap: 35 parameterized primal-dual sweep cases passed in `tests/test_dro_math.py` with zero duality gap ($< 10^{-7}$).
+- Nominal recovery at $\epsilon=0$ confirmed ($2,669.39 normal, $5,219.65 compound).
+- Causal feature extraction: strictly uses observations at decision step $t$ (net load, solar surplus, SOC, current tariff, rolling stress indicator).
+- Deterministic regime routing: Solar Self-Consumption (`mpc_gnn_transformer`), Compound Stress / Robust (`mpc_dro_robust`), Peak Tariff Tail-Hedging (`mpc_cvar_balanced`), Nominal Base Dispatch (`mpc_gnn_transformer`).
+- Implemented multi-tier fallback cascade (Target Controller $\to$ GNN-MPC $\to$ Seasonal MPC $\to$ Zero-Action) and physical power clamping to $\pm 150.0$ kW.
+- Scientifically categorized as Adaptive Policy Selection (Contextual Regime Routing); distinguished from gradient-based meta-learning (MAML/RL²).
+- Evaluated on 72-hour validation slice across 5 conditions (`experiments/phase12_adaptive_experiments/`): demonstrated dynamic switching (33.8% DRO, 59.2% GNN, 7.0% CVaR) with 0 physical violations and $< 1.5$ ms feature extraction overhead.
+- Extended REST API (`src/dashboard/api.py`): `/api/adaptive/results` and `/api/adaptive/trajectory`.
+- Added React Page 10 (`frontend/src/pages/AdaptiveControl.jsx`) with interactive scrubber, composed power chart, regime architecture cards, and comparative matrix.
+- Verification: 9 unit tests passed in `tests/test_adaptive_policy_selector.py`, 7 API tests passed, 5/5 frontend unit tests passed, and Vite production build clean (14.87s). Phase 8.5 held-out test hashes remain pristine.
+
+

@@ -1,5 +1,11 @@
 # Part 5.1 Forecasting Data Audit
 
+> Historical Part 5.1 snapshot: the saved Part 2 data audit remains the source
+> of dataset, units, graph, split, and leakage facts. Statements below about
+> the absence of a model or results describe that audit date; see the
+> [Part 5 completion report](part5_completion_report.md) for subsequent
+> training and held-out evaluation evidence.
+
 ## Audit scope and evidence
 
 This audit examines the saved Part 2 split bundle

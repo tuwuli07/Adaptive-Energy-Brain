@@ -2,10 +2,12 @@
 
 ## Status and scope
 
-This document defines requirements from the currently available Part 2
-artifacts. It does not implement a neural network, forecasting runner, or
-forecast-driven controller. Data findings and limitations are detailed in
-[the forecasting data audit](forecasting_data_audit.md).
+This document records the Part 5.1 requirements derived from the then-available
+Part 2 artifacts. Its statements about an unimplemented model and readiness
+gaps are a point-in-time baseline, not the current project status. Parts
+5.1–5.10 are now complete; see the [Part 5 completion report](part5_completion_report.md)
+for experiment evidence and the current integration boundary. Data findings
+and limitations are detailed in [the forecasting data audit](forecasting_data_audit.md).
 
 ## Prediction task
 
@@ -74,7 +76,7 @@ BUS01`. Do not infer different order from sorting or file enumeration.
   synthetic/hypothetical results clearly labeled; they do not establish
   real-campus or deployment performance.
 
-## Model and evaluation requirements for Part 5.2
+## Model and evaluation requirements recorded for Part 5.2
 
 - Use the graph only as the documented modeling assumption in the data audit;
   do not call its edges measured topology, physical connection weights, or
@@ -96,7 +98,7 @@ BUS01`. Do not infer different order from sorting or file enumeration.
   controllers.
 - Do not add LLM calls to the training loop or implement RAG as part of Part 5.
 
-## Known readiness gaps
+## Known readiness gaps at the Part 5.1 audit
 
 Available examples are synthetic only, and the assumed shared-bus graph is not
 validated physical topology. No known-future covariate set, measured campus

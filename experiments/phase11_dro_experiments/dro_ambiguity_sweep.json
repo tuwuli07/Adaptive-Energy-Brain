@@ -1,0 +1,82 @@
+[
+  {
+    "ambiguity_radius_epsilon": 0.0,
+    "adjusted_net_cost_usd": 5219.65,
+    "raw_net_cost_usd": 5225.85,
+    "hourly_cost_cvar_95_usd": 110.46,
+    "worst_case_hourly_cost_usd": 114.71,
+    "battery_fce": 2.341,
+    "battery_degradation_cost_usd": 46.81,
+    "mean_latency_ms": 93.12
+  },
+  {
+    "ambiguity_radius_epsilon": 0.1,
+    "adjusted_net_cost_usd": 5377.73,
+    "raw_net_cost_usd": 5383.94,
+    "hourly_cost_cvar_95_usd": 139.77,
+    "worst_case_hourly_cost_usd": 164.95,
+    "battery_fce": 2.363,
+    "battery_degradation_cost_usd": 47.26,
+    "mean_latency_ms": 86.94
+  },
+  {
+    "ambiguity_radius_epsilon": 0.25,
+    "adjusted_net_cost_usd": 5377.73,
+    "raw_net_cost_usd": 5383.94,
+    "hourly_cost_cvar_95_usd": 139.77,
+    "worst_case_hourly_cost_usd": 164.95,
+    "battery_fce": 2.363,
+    "battery_degradation_cost_usd": 47.26,
+    "mean_latency_ms": 84.79
+  },
+  {
+    "ambiguity_radius_epsilon": 0.5,
+    "adjusted_net_cost_usd": 5377.73,
+    "raw_net_cost_usd": 5383.94,
+    "hourly_cost_cvar_95_usd": 139.77,
+    "worst_case_hourly_cost_usd": 164.95,
+    "battery_fce": 2.363,
+    "battery_degradation_cost_usd": 47.26,
+    "mean_latency_ms": 84.67
+  },
+  {
+    "ambiguity_radius_epsilon": 0.75,
+    "adjusted_net_cost_usd": 5377.73,
+    "raw_net_cost_usd": 5383.94,
+    "hourly_cost_cvar_95_usd": 139.77,
+    "worst_case_hourly_cost_usd": 164.95,
+    "battery_fce": 2.363,
+    "battery_degradation_cost_usd": 47.26,
+    "mean_latency_ms": 89.89
+  },
+  {
+    "ambiguity_radius_epsilon": 1.0,
+    "adjusted_net_cost_usd": 5377.73,
+    "raw_net_cost_usd": 5383.94,
+    "hourly_cost_cvar_95_usd": 139.77,
+    "worst_case_hourly_cost_usd": 164.95,
+    "battery_fce": 2.363,
+    "battery_degradation_cost_usd": 47.26,
+    "mean_latency_ms": 91.4
+  },
+  {
+    "ambiguity_radius_epsilon": 1.5,
+    "adjusted_net_cost_usd": 5377.73,
+    "raw_net_cost_usd": 5383.94,
+    "hourly_cost_cvar_95_usd": 139.77,
+    "worst_case_hourly_cost_usd": 164.95,
+    "battery_fce": 2.363,
+    "battery_degradation_cost_usd": 47.26,
+    "mean_latency_ms": 87.21
+  },
+  {
+    "ambiguity_radius_epsilon": 2.0,
+    "adjusted_net_cost_usd": 5377.73,
+    "raw_net_cost_usd": 5383.94,
+    "hourly_cost_cvar_95_usd": 139.77,
+    "worst_case_hourly_cost_usd": 164.95,
+    "battery_fce": 2.363,
+    "battery_degradation_cost_usd": 47.26,
+    "mean_latency_ms": 85.75
+  }
+]

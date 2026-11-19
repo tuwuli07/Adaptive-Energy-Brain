@@ -39,11 +39,15 @@ def test_main_displays_component_status(main_result):
         "Data preparation",
         "Energy Simulation",
         "Rule-based Baselines",
+        "GNN-Transformer Forecasting (trained and evaluated research pipeline)",
     )
     for component in implemented_components:
         assert f"- {component}" in lines
 
-    assert "- GNN-Transformer Forecasting (Part 5; not started)" in lines
+    assert (
+        "- Deep Reinforcement Learning (next planned research phase; not implemented)"
+        in lines
+    )
     planned_components = (
         "Deep Reinforcement Learning",
         "Meta-Learning Policy Selector",

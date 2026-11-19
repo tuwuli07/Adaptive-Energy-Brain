@@ -38,3 +38,13 @@ htmlcov/
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Frontend build & dependencies
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+
+# Scratch & temporary scripts
+scratch/
+

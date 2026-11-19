@@ -117,24 +117,24 @@ check reconstructs the model from `best.pt` and performs inference on a
 validation batch; it verifies finite output, target order, shape, and the zero
 BUS01 placeholder. Do not run final test evaluation in Part 5.9.
 
-## Current verification boundary
+## Verification boundary
 
-The notebook and its Python cells are structurally checked locally, and
-existing CPU tests remain part of the repository suite. This environment has
-CPU-only PyTorch; no live Colab runtime was available here. Therefore, GPU
-availability, the actual Colab GPU smoke pass, full training, persisted
-checkpoints, and Colab reload inference require manual execution and must not
-be reported as completed until the notebook produces that evidence.
+At the time this guide's local-readiness checklist was prepared, this Windows
+workspace had CPU-only PyTorch and no live Colab runtime; GPU training was
+therefore unverified at that point. The later user-reported Colab run completed
+training and final evaluation. Its reported outcomes and external artifact
+locations are documented in the [Part 5 completion report](part5_completion_report.md).
+The Drive files are not assumed to be available in this local checkout.
 
-Part 5.10 should remain blocked on review of the completed Colab run,
-experiment metadata, and checkpoint reload results. No held-out test
-evaluation is part of this phase.
+Part 5.9 itself still does not load or evaluate the held-out test split;
+Part 5.10 is reported complete separately. Do not use the test results for
+further model selection or tuning.
 
 ## Beginner-friendly execution checklist
 
-The following paths and readiness facts were verified in the Windows
-workspace; no GitHub publication, Drive upload, or Colab execution has been
-performed:
+The following paths and readiness facts were verified in an earlier Windows
+workspace snapshot. That snapshot predates the reported GitHub/Drive/Colab
+run; it is retained as historical setup context, not current execution status:
 
 - Local project: `E:\3.2\Adaptive Energy Brain\Adaptive-Energy-Brain`
 - Dataset bundle: `E:\3.2\Adaptive Energy Brain\Adaptive-Energy-Brain\data\processed\splits_hypothetical_campus_v1`

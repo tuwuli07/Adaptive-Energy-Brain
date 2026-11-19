@@ -40,7 +40,7 @@ receive the environment, replay data, dispatcher, or metrics tracker.
 | Physical limits | Feasible `charge_limit_kw` and `discharge_limit_kw` are observable. The controller may use them according to its rule, but dispatch is authoritative and may adjust any request for current-interval feasibility; adjustments are recorded. |
 | Renewable curtailment | Not part of `BatteryAction`. The controller cannot ask for curtailment through the environment action interface; dispatch can curtail only under its configured physical-feasibility rules. |
 | Timing | Act only at the observation's `decision_timestamp_utc`. `features()` describes the previous completed hour and the battery state at the current decision boundary. The request applies to the next replay row. |
-| Forecasts | Not required by these baselines. If forecasts are added later, they must be explicit `ForecastFeature` values that satisfy the observation's issue-time, data-cutoff, and target-time checks. Apply the same forecast inputs to all compared controllers. |
+| Forecasts | These Part 4 baselines do not require or consume forecasts. Optional forecasts are explicit `ForecastFeature` values attached to `AgentObservation`; the Part 5 adapter validates issue-time, data-cutoff, target-time and ordering contracts. Any future comparison must provide equivalent forecast inputs to all compared controllers. |
 | Independence | A controller may retain only its own declared internal state and static parameters. It must not read future rows, realized dispatch outcomes before they are returned, or another controller's state. |
 
 `AgentObservation.features()` currently exposes an allowlisted mapping:

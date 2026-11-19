@@ -1,0 +1,31 @@
+condition,controller_id,controller_name,raw_net_cost_usd,terminal_inventory_credit_usd,adjusted_net_cost_usd,total_import_cost_usd,total_export_revenue_usd,hourly_cost_mean_usd,hourly_cost_var_95_usd,hourly_cost_cvar_95_usd,worst_case_hourly_cost_usd,battery_throughput_kwh,battery_fce,battery_degradation_cost_usd,peak_grid_import_kw,initial_soc,terminal_soc,mean_latency_ms,max_latency_ms,total_steps
+normal,zero_action,Zero Action Baseline,2674.75,0.0,2674.75,2674.75,0.0,37.67,61.43,65.92,74.41,0.0,0.0,0.0,506.31,0.5,0.5,0.02,0.04,71
+normal,mpc_seasonal_persistence,Seasonal Persistence MPC,2675.6,6.2,2669.39,2628.33,0.0,37.68,67.98,71.83,75.28,2363.16,2.363,47.26,602.36,0.5,0.5842,15.1,23.28,71
+normal,mpc_gnn_transformer,Deterministic GNN-Transformer MPC,2675.6,6.2,2669.39,2628.33,0.0,37.68,67.96,72.46,75.28,2363.16,2.363,47.26,602.36,0.5,0.5842,40.66,180.54,71
+normal,mpc_cvar_neutral,CVaR MPC (lambda=0.0 Risk-Neutral),2675.6,6.2,2669.39,2628.33,0.0,37.68,69.43,71.14,72.24,2363.16,2.363,47.26,577.01,0.5,0.5842,79.46,119.46,71
+normal,mpc_cvar_balanced,CVaR MPC (lambda=1.0 Balanced),2675.6,6.2,2669.39,2628.33,0.0,37.68,69.43,71.14,72.24,2363.16,2.363,47.26,577.01,0.5,0.5842,78.2,106.92,71
+normal,mpc_cvar_averse,CVaR MPC (lambda=3.0 Risk-Averse),2675.6,6.2,2669.39,2628.33,0.0,37.68,69.43,71.14,72.24,2363.16,2.363,47.26,577.01,0.5,0.5842,78.85,113.65,71
+high_demand,zero_action,Zero Action Baseline,3574.24,0.0,3574.24,3574.24,0.0,50.34,80.07,85.33,94.75,0.0,0.0,0.0,677.17,0.5,0.5,0.02,0.05,71
+high_demand,mpc_seasonal_persistence,Seasonal Persistence MPC,3575.08,6.2,3568.88,3527.82,0.0,50.35,85.4,90.53,94.21,2363.16,2.363,47.26,760.08,0.5,0.5842,13.15,21.41,71
+high_demand,mpc_gnn_transformer,Deterministic GNN-Transformer MPC,3575.08,6.2,3568.88,3527.82,0.0,50.35,83.79,90.28,94.21,2363.16,2.363,47.26,760.08,0.5,0.5842,39.58,53.76,71
+high_demand,mpc_cvar_neutral,CVaR MPC (lambda=0.0 Risk-Neutral),3575.08,6.2,3568.88,3527.82,0.0,50.35,86.77,88.71,90.16,2363.16,2.363,47.26,731.14,0.5,0.5842,81.12,114.94,71
+high_demand,mpc_cvar_balanced,CVaR MPC (lambda=1.0 Balanced),3575.08,6.2,3568.88,3527.82,0.0,50.35,86.77,88.71,90.16,2363.16,2.363,47.26,731.14,0.5,0.5842,77.86,120.25,71
+high_demand,mpc_cvar_averse,CVaR MPC (lambda=3.0 Risk-Averse),3575.08,6.2,3568.88,3527.82,0.0,50.35,86.77,88.71,90.16,2363.16,2.363,47.26,731.14,0.5,0.5842,79.72,114.74,71
+renewable_scarcity,zero_action,Zero Action Baseline,3172.63,0.0,3172.63,3172.63,0.0,44.68,69.72,72.88,78.1,0.0,0.0,0.0,598.29,0.5,0.5,0.02,0.24,71
+renewable_scarcity,mpc_seasonal_persistence,Seasonal Persistence MPC,3173.48,6.2,3167.27,3126.21,0.0,44.7,77.41,83.47,86.32,2363.16,2.363,47.26,694.3,0.5,0.5842,13.47,16.79,71
+renewable_scarcity,mpc_gnn_transformer,Deterministic GNN-Transformer MPC,3173.48,6.2,3167.27,3126.21,0.0,44.7,75.43,82.73,86.32,2363.16,2.363,47.26,694.3,0.5,0.5842,38.45,73.04,71
+renewable_scarcity,mpc_cvar_neutral,CVaR MPC (lambda=0.0 Risk-Neutral),3173.48,6.2,3167.27,3126.21,0.0,44.7,79.85,81.62,82.26,2363.16,2.363,47.26,665.35,0.5,0.5842,78.9,111.76,71
+renewable_scarcity,mpc_cvar_balanced,CVaR MPC (lambda=1.0 Balanced),3173.48,6.2,3167.27,3126.21,0.0,44.7,79.85,81.62,82.26,2363.16,2.363,47.26,665.35,0.5,0.5842,79.08,116.59,71
+renewable_scarcity,mpc_cvar_averse,CVaR MPC (lambda=3.0 Risk-Averse),3173.48,6.2,3167.27,3126.21,0.0,44.7,79.85,81.62,82.26,2363.16,2.363,47.26,665.35,0.5,0.5842,77.71,124.94,71
+price_spikes,zero_action,Zero Action Baseline,3595.08,0.0,3595.08,3595.08,0.0,50.63,84.26,96.45,113.48,0.0,0.0,0.0,506.31,0.5,0.5,0.02,0.03,71
+price_spikes,mpc_seasonal_persistence,Seasonal Persistence MPC,3433.92,6.2,3427.72,3386.66,0.0,48.37,80.42,83.26,89.1,2363.16,2.363,47.26,602.36,0.5,0.5842,12.85,17.97,71
+price_spikes,mpc_gnn_transformer,Deterministic GNN-Transformer MPC,3433.92,6.2,3427.72,3386.66,0.0,48.37,80.42,83.26,89.1,2363.16,2.363,47.26,602.36,0.5,0.5842,38.13,59.61,71
+price_spikes,mpc_cvar_neutral,CVaR MPC (lambda=0.0 Risk-Neutral),3487.92,6.2,3481.72,3440.66,0.0,49.13,81.02,84.69,89.1,2363.16,2.363,47.26,577.01,0.5,0.5842,78.35,113.83,71
+price_spikes,mpc_cvar_balanced,CVaR MPC (lambda=1.0 Balanced),3487.92,6.2,3481.72,3440.66,0.0,49.13,81.02,84.69,89.1,2363.16,2.363,47.26,577.01,0.5,0.5842,78.56,125.97,71
+price_spikes,mpc_cvar_averse,CVaR MPC (lambda=3.0 Risk-Averse),3487.92,6.2,3481.72,3440.66,0.0,49.13,81.02,84.69,89.1,2363.16,2.363,47.26,577.01,0.5,0.5842,78.43,125.91,71
+compound_adverse,zero_action,Zero Action Baseline,5383.1,0.0,5383.1,5383.1,0.0,75.82,111.95,139.77,164.95,0.0,0.0,0.0,769.16,0.5,0.5,0.02,0.08,71
+compound_adverse,mpc_seasonal_persistence,Seasonal Persistence MPC,5221.94,6.2,5215.73,5174.68,0.0,73.55,108.54,110.46,114.71,2363.16,2.363,47.26,852.02,0.5,0.5842,13.99,20.48,71
+compound_adverse,mpc_gnn_transformer,Deterministic GNN-Transformer MPC,5221.94,6.2,5215.73,5174.68,0.0,73.55,108.54,110.46,114.71,2363.16,2.363,47.26,852.02,0.5,0.5842,37.09,59.76,71
+compound_adverse,mpc_cvar_neutral,CVaR MPC (lambda=0.0 Risk-Neutral),5225.85,6.2,5219.65,5179.04,0.0,73.6,108.54,110.46,114.71,2340.56,2.341,46.81,823.07,0.5,0.5842,79.43,112.11,71
+compound_adverse,mpc_cvar_balanced,CVaR MPC (lambda=1.0 Balanced),5225.85,6.2,5219.65,5179.04,0.0,73.6,108.54,110.46,114.71,2340.56,2.341,46.81,823.07,0.5,0.5842,80.5,109.35,71
+compound_adverse,mpc_cvar_averse,CVaR MPC (lambda=3.0 Risk-Averse),5221.94,6.2,5215.73,5174.68,0.0,73.55,108.54,110.46,114.71,2363.16,2.363,47.26,823.07,0.5,0.5842,78.67,118.38,71

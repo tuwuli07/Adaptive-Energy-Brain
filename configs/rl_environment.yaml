@@ -1,0 +1,5 @@
+# Adapter representation only; physical simulation configuration is unchanged.
+version: 1
+observation_schema: drl_observation_v1
+power_reference_kw: 1000
+price_reference_per_kwh: 1

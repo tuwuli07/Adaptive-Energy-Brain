@@ -1,0 +1,17 @@
+version: 1
+stage: pilot
+learning_rates: {A: 0.0003, B: 0.0001}
+pilot_seed: 0
+pilot_timesteps: 4096
+episode_hours: 168
+checkpoint_interval: 2048
+validation_rows: 1314
+initial_soc: 0.5
+planned_study:
+  seeds: [0, 1, 2, 3, 4]
+  primary_checkpoint_timesteps: 32768
+  diagnostic_checkpoints: [8192, 16384, 32768]
+comparison:
+  cost_tolerance: 0.000001
+  energy_tolerance_kwh: 0.000001
+  rule: paired_seed_cost_terminal_energy_pareto

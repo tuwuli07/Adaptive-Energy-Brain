@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Adaptive Energy Brain PPO experiment metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "phase",
+    "purpose",
+    "experiment_id",
+    "created_at_utc",
+    "status",
+    "data",
+    "configuration",
+    "source",
+    "software",
+    "contracts",
+    "progress",
+    "lineage",
+    "artifacts",
+    "verification",
+    "diagnostics"
+  ],
+  "properties": {
+    "schema_version": {
+      "enum": [
+        "1.0",
+        "1.1"
+      ]
+    },
+    "phase": {
+      "enum": [
+        "6.3",
+        "6.4"
+      ]
+    },
+    "purpose": {
+      "enum": [
+        "infrastructure_smoke",
+        "validation_pilot",
+        "validation_experiment",
+        "gamma_diagnostic",
+        "reward_scale_diagnostic",
+        "discounting_diagnostic",
+        "discrete_diagnostic",
+        "pbrs_diagnostic"
+      ]
+    },
+    "experiment_id": {
+      "type": "string"
+    },
+    "created_at_utc": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "running",
+        "completed",
+        "interrupted",
+        "failed"
+      ]
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "partition",
+        "split_root",
+        "boundaries",
+        "split_manifest_sha256",
+        "preprocessing_sha256",
+        "training_files",
+        "sources",
+        "rows",
+        "preprocessing"
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "required": [
+        "seed",
+        "episode_hours",
+        "total_timesteps",
+        "policy_layers",
+        "n_steps",
+        "batch_size",
+        "n_epochs",
+        "learning_rate",
+        "device"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "git_revision",
+        "dirty_worktree",
+        "source_manifest_sha256",
+        "source_snapshot_sha256"
+      ]
+    },
+    "software": {
+      "type": "object",
+      "required": [
+        "python",
+        "stable-baselines3",
+        "gymnasium",
+        "numpy",
+        "torch",
+        "pandas",
+        "matplotlib",
+        "device",
+        "torch_threads"
+      ]
+    },
+    "contracts": {
+      "type": "object",
+      "required": [
+        "observation_schema",
+        "feature_order",
+        "power_reference_kw",
+        "price_reference_per_kwh",
+        "observation_bounds",
+        "action",
+        "reward",
+        "terminal_soc",
+        "shortage_handling",
+        "seeds"
+      ]
+    },
+    "progress": {
+      "type": "object",
+      "required": [
+        "requested_additional_timesteps",
+        "collected_timesteps",
+        "checkpoint_timesteps",
+        "completed_rollout_updates",
+        "optimizer_steps"
+      ]
+    },
+    "lineage": {
+      "type": "object"
+    },
+    "artifacts": {
+      "type": "object"
+    },
+    "verification": {
+      "type": "object"
+    },
+    "diagnostics": {
+      "type": "object"
+    }
+  }
+}

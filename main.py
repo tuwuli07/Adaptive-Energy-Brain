@@ -11,12 +11,13 @@ def main():
         "Data preparation",
         "Energy Simulation",
         "Rule-based Baselines",
+        "GNN-Transformer Forecasting (trained and evaluated research pipeline)",
     )
     for component in implemented:
         print(f"- {component}")
 
     print("\nCurrent phase:")
-    print("- GNN-Transformer Forecasting (Part 5; not started)")
+    print("- Deep Reinforcement Learning (next planned research phase; not implemented)")
 
     print("\nPlanned components:")
     planned = (

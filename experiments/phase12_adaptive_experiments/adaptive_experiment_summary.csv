@@ -1,0 +1,31 @@
+condition,controller_id,controller_name,adjusted_net_cost_usd,raw_net_cost_usd,cvar_95_usd,worst_hour_usd,battery_fce,mean_latency_ms,violations
+normal,zero_action,Zero Action Baseline,2674.75,2674.75,65.92,74.41,0.0,0.02,0
+normal,mpc_seasonal_persistence,Seasonal Persistence MPC,2669.39,2675.6,71.83,75.28,2.363,15.9,0
+normal,mpc_gnn_transformer,Deterministic GNN-Transformer MPC,2669.39,2675.6,72.46,75.28,2.363,40.83,0
+normal,mpc_cvar_balanced,CVaR Risk-Aware MPC (lambda=1.0),2669.39,2675.6,71.14,72.24,2.363,80.14,0
+normal,mpc_dro_robust,DRO Robust MPC (eps=0.5),2669.39,2675.6,71.14,72.24,2.363,85.57,0
+normal,adaptive_policy_selector,Adaptive Policy Selector (Regime-Aware),2669.39,2675.6,72.46,75.28,2.363,54.0,0
+high_demand,zero_action,Zero Action Baseline,3574.24,3574.24,85.33,94.75,0.0,0.03,0
+high_demand,mpc_seasonal_persistence,Seasonal Persistence MPC,3568.88,3575.08,90.53,94.21,2.363,15.94,0
+high_demand,mpc_gnn_transformer,Deterministic GNN-Transformer MPC,3568.88,3575.08,90.28,94.21,2.363,37.8,0
+high_demand,mpc_cvar_balanced,CVaR Risk-Aware MPC (lambda=1.0),3568.88,3575.08,88.71,90.16,2.363,87.2,0
+high_demand,mpc_dro_robust,DRO Robust MPC (eps=0.5),3568.88,3575.08,88.71,90.16,2.363,95.57,0
+high_demand,adaptive_policy_selector,Adaptive Policy Selector (Regime-Aware),3568.88,3575.08,90.28,94.21,2.363,55.52,0
+renewable_scarcity,zero_action,Zero Action Baseline,3172.63,3172.63,72.88,78.1,0.0,0.04,0
+renewable_scarcity,mpc_seasonal_persistence,Seasonal Persistence MPC,3167.27,3173.48,83.47,86.32,2.363,18.47,0
+renewable_scarcity,mpc_gnn_transformer,Deterministic GNN-Transformer MPC,3167.27,3173.48,82.73,86.32,2.363,38.16,0
+renewable_scarcity,mpc_cvar_balanced,CVaR Risk-Aware MPC (lambda=1.0),3167.27,3173.48,81.62,82.26,2.363,86.84,0
+renewable_scarcity,mpc_dro_robust,DRO Robust MPC (eps=0.5),3167.27,3173.48,81.62,82.26,2.363,60.37,0
+renewable_scarcity,adaptive_policy_selector,Adaptive Policy Selector (Regime-Aware),3167.27,3173.48,82.73,86.32,2.363,62.66,0
+price_spikes,zero_action,Zero Action Baseline,3595.08,3595.08,96.45,113.48,0.0,0.03,0
+price_spikes,mpc_seasonal_persistence,Seasonal Persistence MPC,3427.72,3433.92,83.26,89.1,2.363,18.31,0
+price_spikes,mpc_gnn_transformer,Deterministic GNN-Transformer MPC,3427.72,3433.92,83.26,89.1,2.363,38.43,0
+price_spikes,mpc_cvar_balanced,CVaR Risk-Aware MPC (lambda=1.0),3481.72,3487.92,84.69,89.1,2.363,108.14,0
+price_spikes,mpc_dro_robust,DRO Robust MPC (eps=0.5),3589.72,3595.92,96.45,113.48,2.363,104.38,0
+price_spikes,adaptive_policy_selector,Adaptive Policy Selector (Regime-Aware),3535.72,3541.92,92.77,113.48,2.363,83.21,0
+compound_adverse,zero_action,Zero Action Baseline,5383.1,5383.1,139.77,164.95,0.0,0.03,0
+compound_adverse,mpc_seasonal_persistence,Seasonal Persistence MPC,5215.73,5221.94,110.46,114.71,2.363,14.69,0
+compound_adverse,mpc_gnn_transformer,Deterministic GNN-Transformer MPC,5215.73,5221.94,110.46,114.71,2.363,33.7,0
+compound_adverse,mpc_cvar_balanced,CVaR Risk-Aware MPC (lambda=1.0),5219.65,5225.85,110.46,114.71,2.341,73.59,0
+compound_adverse,mpc_dro_robust,DRO Robust MPC (eps=0.5),5377.73,5383.94,139.77,164.95,2.363,91.45,0
+compound_adverse,adaptive_policy_selector,Adaptive Policy Selector (Regime-Aware),5323.73,5329.94,126.34,164.95,2.363,79.91,0

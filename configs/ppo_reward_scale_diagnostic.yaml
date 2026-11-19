@@ -1,0 +1,14 @@
+version: 1
+stage: reward_scale_diagnostic
+gamma: 0.99
+reward_scales:
+  control: 1.0
+  treatment: 0.0025
+seed: 0
+learning_rate: 0.0003
+total_timesteps: 8192
+episode_hours: 168
+checkpoint_interval: 2048
+validation_checkpoints: [4096, 8192]
+validation_rows: 1314
+initial_soc: 0.5
