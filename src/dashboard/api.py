@@ -275,24 +275,10 @@ class APIRequestHandler(BaseHTTPRequestHandler):
 
     def handle_assistant_status(self):
         from src.assistant.energy_assistant import assistant_status
-        from src.assistant.gemini_service import GEMINI_SERVICE
-        from src.assistant.mcp_server import list_registered_tools
-        from src.assistant.rag import RAG_PIPELINE
 
-        rag_count = 0
-        try:
-            rag_count = RAG_PIPELINE.get_collection().count()
-        except Exception:
-            pass
-
-        self.send_json({
-            **assistant_status(),
-            "status": "online",
-            "gemini_configured": GEMINI_SERVICE.is_configured(),
-            "gemini_model": GEMINI_SERVICE.model_name,
-            "rag_chunks_indexed": rag_count,
-            "mcp_tools_available": len(list_registered_tools()),
-        })
+        status = assistant_status()
+        status["status"] = "online"
+        self.send_json(status)
 
     def handle_assistant_chat(self):
         content_len = int(self.headers.get("Content-Length", 0))

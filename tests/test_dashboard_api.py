@@ -1,4 +1,5 @@
 import json
+import builtins
 import pytest
 from src.dashboard.api import DATA_SOURCE, APIRequestHandler
 
@@ -91,6 +92,23 @@ def test_assistant_status_payload():
     assert len(tools) == 10
     chunks = RAG_PIPELINE.get_collection().count()
     assert chunks >= 200
+
+
+def test_assistant_status_does_not_import_optional_research_dependencies(monkeypatch):
+    handler = APIRequestHandler.__new__(APIRequestHandler)
+    payload = {}
+    monkeypatch.setattr(handler, "send_json", lambda value, status=200: payload.update(value))
+    real_import = builtins.__import__
+
+    def reject_optional_imports(name, *args, **kwargs):
+        if name in {"src.assistant.mcp_server", "src.assistant.rag"}:
+            raise ModuleNotFoundError(name)
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", reject_optional_imports)
+    handler.handle_assistant_status()
+    assert payload["status"] == "online"
+    assert payload["default_provider"] == "gemini"
 
 
 

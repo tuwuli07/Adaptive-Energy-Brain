@@ -47,9 +47,18 @@ def answer_energy_query(message, history=None, provider=None, dataset_summary=No
         if not any(source["type"] == "dataset" for source in sources):
             sources.append({"title": "Active dataset: validated descriptive summary", "type": "dataset"})
     if research:
-        from src.assistant.orchestrator import ASSISTANT_ORCHESTRATOR
-        from src.assistant.mcp_server import execute_tool
-        from src.assistant.rag import RAG_PIPELINE
+        try:
+            from src.assistant.orchestrator import ASSISTANT_ORCHESTRATOR
+            from src.assistant.mcp_server import execute_tool
+            from src.assistant.rag import RAG_PIPELINE
+        except ImportError:
+            return {
+                "status": "error",
+                "answer": "",
+                "error": "Published research references are unavailable in this deployment.",
+                "provider": "gemini",
+                "sources": [],
+            }
         for name in ASSISTANT_ORCHESTRATOR._select_mcp_tools(message):
             result = execute_tool(name)
             if result.get("status") == "success":
