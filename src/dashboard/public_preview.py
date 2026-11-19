@@ -6,6 +6,7 @@ repository, development server, backend port, or Ollama port directly.
 import http.client
 import json
 import mimetypes
+import os
 from pathlib import Path
 import re
 import threading
@@ -150,8 +151,10 @@ class PreviewHandler(BaseHTTPRequestHandler):
 def main():
     if not (DIST / "index.html").is_file():
         raise SystemExit("Build the frontend before starting the public preview.")
-    server = ThreadingHTTPServer(("127.0.0.1", 8787), PreviewHandler)
-    print("Built application preview: http://127.0.0.1:8787", flush=True)
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "8787"))
+    server = ThreadingHTTPServer((host, port), PreviewHandler)
+    print(f"Built application preview: http://{host}:{port}", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

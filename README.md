@@ -1,230 +1,319 @@
 # Adaptive Energy Brain
 
-## Project overview
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![License](https://img.shields.io/badge/license-TBD-lightgrey)](#license)
 
-Adaptive Energy Brain is an AI-powered renewable energy management research
-project. It proposes combining energy forecasting, adaptive control, policy
-selection, and risk optimization to study energy management under uncertainty.
+Adaptive Energy Brain is a research dashboard for renewable energy forecasting,
+battery dispatch, controller evaluation, risk analysis, and adaptive control.
+It combines a React/Vite interface with a Python HTTP API and includes bounded
+CSV dataset uploads and an optional energy-assistant interface.
 
-## Research objectives
+> [!IMPORTANT]
+> This project is a research prototype. It uses synthetic and simulated data
+> unless a user explicitly uploads and selects a dataset. It is not validated
+> for real-world equipment control, safety-critical operations, or grid dispatch.
 
-- Forecast renewable generation and energy demand across connected energy assets.
-- Compare multiple reinforcement learning policies for energy management.
-- Investigate meta-learning for selecting policies across operating conditions.
-- Evaluate distributionally robust optimization (DRO) and conditional value at
-  risk (CVaR) methods for managing uncertain outcomes.
-- Assess forecasting accuracy, control performance, and risk using reproducible
-  experiments and appropriate baselines.
+## Features
 
-Parts 1–4 provide synthetic-data preparation, a research simulator, and
-rule-based controller baselines. Parts 5.1–5.10 have implemented, trained, and
-evaluated a GNN-Transformer forecasting research pipeline on a synthetic
-hypothetical campus dataset. The forecast model did not beat seasonal
-persistence overall. Neither these experiments nor the simulator establish
-real-campus performance or operational readiness.
+- Interactive energy monitoring and battery-discharge dashboards
+- Forecasting metrics and comparative controller analysis
+- CVaR, DRO, and adaptive-policy research results
+- Simulation result exports
+- Bounded CSV upload, validation, analysis, and column mapping
+- Read-only research API with an illustrative-data fallback
+- Optional local Ollama or Gemini assistant
+- Public-demo safeguards for rate limiting and request validation
 
-## Research architecture and status
+## Research status
 
-The planned research workflow is:
+The data pipeline, simulator, rule-based baselines, GNN-Transformer forecasting
+pipeline, and selected risk/adaptive experiments are implemented. The GNN-
+Transformer forecast did not outperform seasonal persistence overall in the
+reported held-out experiment.
 
-1. **Data preparation (Parts 1–2 complete):** validate and prepare datasets,
-   chronological splits, graph structure, and forecasting sequences.
-2. **Energy simulation (Part 3 complete):** run the configurable single-bus
-   research simulator.
-3. **Rule-based baselines (Part 4 complete):** compare four causal controller
-   strategies using shared episode and evaluation interfaces.
-4. **GNN-Transformer Forecasting (Parts 5.1–5.10 complete):** train and
-   evaluate node-level demand and renewable forecasts; results and integration
-   limits are summarized in the
-   [Part 5 completion report](docs/part5_completion_report.md).
-5. **Deep Reinforcement Learning (next planned phase):** specify and compare
-   control policies using the existing simulator; not implemented.
-6. **Meta-Learning Policy Selector:** investigate policy selection as conditions
-   change.
-7. **DRO/CVaR Risk Optimization:** investigate robustness and tail-risk control.
-8. **Evaluation and Dashboard:** compare experiments and present their results.
-9. **Optional RAG Assistant:** explore retrieval-based access to project knowledge.
+Deep reinforcement learning, meta-learning, real-time control, and
+safety-critical grid integration should be treated as research areas rather than
+production capabilities. See [Development Handoff](docs/development_handoff.md)
+for the verified implementation status and current limitations.
 
-See the [development handoff](docs/development_handoff.md) for current status
-and the [AI stack integration plan](docs/ai_stack_integration_plan.md) for
-optional tooling. Do not treat planned components as implemented.
-
-## Technology stack
-
-- **Configured:** Python 3.12, a local `.venv`, NumPy, pandas, Matplotlib,
-  scikit-learn, PyYAML, pytest, and the optional PyTorch ML environment
-  (CPU locally; a separate Colab GPU run was reported).
-- **Development tools:** Windows, PowerShell, VS Code, and Git.
-- **Deferred candidates:** PyTorch Geometric, Stable-Baselines3, Gymnasium,
-  CVXPY, Streamlit, and RAG tooling. These are not required by the current
-  forecasting or simulator workflows.
-
-## Project directory structure
+## Architecture
 
 ```text
-Adaptive-Energy-Brain/
-|-- configs/
-|-- dashboard/
-|-- data/
-|   |-- raw/
-|   `-- processed/
-|-- models/
-|-- notebooks/
-|-- results/
-|-- src/
-|   |-- __init__.py
-|   |-- simulation/
-|   |-- forecasting/
-|   |-- rl/
-|   |-- meta_learning/
-|   |-- risk/
-|   |-- evaluation/
-|   `-- rag/
-|-- tests/
-|-- .gitignore
-|-- main.py
-|-- README.md
-`-- requirements.txt
+React/Vite frontend
+        |
+        | /api
+        v
+Public preview gateway
+        |
+        | localhost proxy
+        v
+Python research API
+        |
+        +-- Simulation and controller artifacts
+        +-- CSV dataset store
+        +-- Optional Ollama or Gemini assistant
 ```
 
-Python packages under `src/` include `__init__.py`. Empty scaffold directories
-contain `.gitkeep` files so Git can preserve their structure. The local `.venv/`
-is excluded from version control.
+### Main directories
 
-- `data/raw/`, `data/processed/`: input datasets and prepared data.
-- `configs/`: experiment and application configuration.
-- `src/`: Python packages for simulation, forecasting, reinforcement learning,
-  meta-learning, risk optimization, evaluation, and retrieval-augmented generation.
-- `dashboard/`: dashboard code and assets.
-- `notebooks/`: exploratory research notebooks.
-- `tests/`: automated tests.
-- `models/`: saved model artifacts.
-- `results/`: experiment outputs.
-- `main.py`: application overview entry point; prints component status.
+| Path | Purpose |
+|---|---|
+| `frontend/` | React, Vite, and Tailwind user interface |
+| `src/dashboard/` | Python API and public-preview gateway |
+| `src/data/` | Dataset ingestion, validation, splitting, and analysis |
+| `src/simulation/` | Microgrid simulation environment |
+| `src/baselines/` | Causal controller baselines |
+| `src/forecasting/` | Forecasting models and evaluation pipeline |
+| `src/assistant/` | Ollama, Gemini, RAG, and MCP integrations |
+| `src/risk/` | Risk-management components |
+| `tests/` | Python and frontend test coverage |
+| `configs/` | Data, experiment, and controller configuration |
+| `results/` | Generated and repository-tracked research results |
 
-## Installation on Windows
+## Prerequisites
 
-Install Python 3.12 and Git first. In PowerShell, navigate to the project root
-(the directory containing this README and `main.py`), then run:
+- Python 3.12
+- Node.js 20 or newer
+- npm
+- Git
+- Windows, Linux, or macOS
+
+Python dependencies are listed in `requirements.txt`. The frontend dependencies
+and exact lockfile are in `frontend/package.json` and
+`frontend/package-lock.json`.
+
+## Local setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/tuwuli07/Adaptive-Energy-Brain.git
+cd Adaptive-Energy-Brain
+```
+
+### 2. Create a Python environment
+
+**Windows PowerShell**
 
 ```powershell
-# Create the environment only if .venv does not already exist.
-if (-not (Test-Path .venv)) { py -3.12 -m venv .venv }
+py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python --version
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python -m pip check
 ```
 
-The Python version should be 3.12.x. If script execution blocks activation, allow
-it for the current PowerShell session only:
+If PowerShell blocks virtual-environment activation:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 ```
 
-Activation is optional when using the environment's interpreter directly:
+**Linux or macOS**
 
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip check
 ```
 
-Requirements currently list the six foundational packages without version pins.
-The Part 5 experiment metadata contract is defined in
-`configs/experiment_metadata.schema.json`; pinning/locking the training
-environment remains necessary before comparable model experiments.
+### 3. Install and build the frontend
 
-## Run the application
-
-With `.venv` activated, run:
-
-```powershell
-python main.py
+```bash
+cd frontend
+npm ci
+npm run build
+cd ..
 ```
 
-Or without activation:
+## Run locally
 
-```powershell
-.\.venv\Scripts\python.exe main.py
+Open two terminals from the project root.
+
+**Terminal 1 - API**
+
+```bash
+python -m src.dashboard.api 8000
 ```
 
-The entry point prints a status overview of implemented and planned research
-components. It does not run simulations, train models, or start a dashboard.
+**Terminal 2 - Public preview**
 
-## Current development status
-
-Parts 1–4 and the Part 5.1–5.10 forecasting pipeline are complete. The reported
-Part 5 Colab experiment used a Tesla T4 and a held-out synthetic test partition;
-its aggregate results and caveats are recorded in the
-[Part 5 completion report](docs/part5_completion_report.md). DRL is the next
-planned research phase. No meta-learning selector, DRO/CVaR optimizer,
-dashboard, or RAG assistant is implemented. No result establishes real-campus
-performance. See the [development handoff](docs/development_handoff.md) and
-[Part 4 completion report](docs/part4_completion_report.md).
-
-Run the complete test suite from the project root:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider
+```bash
+python -m src.dashboard.public_preview
 ```
 
-This command disables pytest's optional cache. The existing suite requires no
-network access, datasets, GPUs, or model training.
+Open `http://127.0.0.1:8787`.
 
-Generated datasets in `data/raw/` and `data/processed/`, model artifacts in
-`models/`, experiment outputs in `results/`, common checkpoint formats, caches,
-and local secrets are excluded from Git. Keep source code and configuration
-outside generated-output directories. This checkout has a configured GitHub
-remote. Training checkpoints and evaluation artifacts are stored in Google
-Drive and are not assumed to be present in this local checkout.
+For frontend development with hot reload, open a third workflow:
 
-## Development practices and optional integrations
+```bash
+cd frontend
+npm run dev
+```
 
-Follow [AGENTS.md](AGENTS.md) for Copilot and Codex instructions. Selected
-external providers, retrieval, orchestration, and agent frameworks are not
-installed or required; see the [AI stack integration plan](docs/ai_stack_integration_plan.md).
-PyTorch is an optional ML dependency; see
-[ML environment setup](docs/ml_environment_setup.md) for local CPU and Colab GPU instructions.
+Then open `http://127.0.0.1:5173`. Vite proxies `/api` requests to the Python
+API on port 8000.
 
-## General energy workspace and local assistant
+The `python main.py` command prints a project status summary only. It does not
+start the dashboard.
 
-The main workspace supports uploaded site data for homes, buildings, businesses,
-renewable communities, and microgrids. There is no default campus demo or
-substituted sample dashboard. Published experiments remain separately labeled
-research references; they do not establish performance for an uploaded site.
+## Assistant configuration
 
-The floating energy assistant defaults to local Ollama. Start Ollama and select
-an installed model in the assistant. This checkout's local verification used
-`llama3.2:3b`; other installed chat models can be selected. No model is pulled
-automatically. If starting from a new machine, install Ollama and run
-`ollama pull llama3.2:3b` yourself, then restart/refresh the assistant.
+The default assistant provider is local Ollama. See `.env.example` for variable
+names. Never commit an actual `.env` file or API key.
 
-Server configuration (see `.env.example`):
+**Local Ollama**
+
+1. Install and start [Ollama](https://ollama.com/).
+2. Pull a model:
+
+   ```bash
+   ollama pull llama3.2:3b
+   ```
+
+3. Configure:
+
+   ```dotenv
+   ENERGY_ASSISTANT_PROVIDER=ollama
+   OLLAMA_BASE_URL=http://127.0.0.1:11434
+   OLLAMA_MODEL=llama3.2:3b
+   OLLAMA_NUM_GPU=0
+   ```
+
+**Gemini**
+
+Set environment variables on the backend only:
 
 ```dotenv
-ENERGY_ASSISTANT_PROVIDER=ollama
-OLLAMA_BASE_URL=http://127.0.0.1:11434
-OLLAMA_MODEL=llama3.2:3b
-OLLAMA_NUM_GPU=0
+ENERGY_ASSISTANT_PROVIDER=gemini
+GEMINI_API_KEY=your-api-key
+GEMINI_MODEL=gemini-2.5-flash
 ```
 
-CPU inference is the default because GPU startup timed out during local
-verification; `OLLAMA_NUM_GPU=-1` opts into Ollama's automatic GPU offload.
-The adapter uses the official [Ollama chat API](https://docs.ollama.com/api/chat) and [installed-model listing API](https://docs.ollama.com/api/tags).
-The local endpoint is restricted to loopback HTTP and ignores system HTTP
-proxies. The model receives the question, limited conversation history, and
-only the selected dataset's validated summary when present. Full raw CSVs are
-not passed to the assistant. Local-model errors are shown explicitly and never
-fall back to Gemini or canned project answers.
+Gemini calls send the question, bounded conversation history, and selected
+dataset summary to Google. The public preview disables Gemini and only permits
+its explicitly bounded local-model flow.
 
-Gemini remains available as an explicit cloud option when `GEMINI_API_KEY` is
-configured on the backend. Selecting it sends the question, conversation
-history, and selected dataset summary to Gemini; the UI discloses this.
-Published research context (existing RAG and read-only MCP tools) is included
-only when the user enables **Include published research references**.
+The uploaded CSV is summarized and validated by the backend; raw upload content
+is not included in assistant prompts.
 
-The backend and Ollama run on the server computer. In a hosted deployment,
-"local Ollama" means that server, not each visitor's computer; the host must
-provide its own running model service. LLM answers do not run forecasting,
-retraining, optimization, or equipment control.
+## Tests
+
+Run the Python suite:
+
+```bash
+python -m pytest tests -q -p no:cacheprovider
+```
+
+Run the frontend unit tests:
+
+```bash
+cd frontend
+npm test
+npm run build
+```
+
+Run all relevant tests before deployment. This repository has no live equipment
+dependency, GPU requirement, or external dataset requirement for the existing
+test suite.
+
+## Deploy to Render
+
+The repository includes a Render Blueprint in `render.yaml`. It publishes the
+built React interface and Python API as one web service so the browser uses the
+same origin.
+
+### One-time deployment
+
+1. Push the repository to GitHub.
+2. Open the [Render Dashboard](https://dashboard.render.com/).
+3. Select **New > Blueprint**.
+4. Connect the GitHub repository `tuwuli07/Adaptive-Energy-Brain`.
+5. Render will detect `render.yaml`.
+6. Review and create the service.
+7. Wait for the build to finish, then open the generated `*.onrender.com` URL.
+
+The Blueprint performs this build:
+
+```bash
+cd frontend
+npm ci
+npm run build
+cd ..
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+The start command launches the Python API and the public preview gateway:
+
+```bash
+python scripts/start_render.py
+```
+
+### Manual Render configuration
+
+If the Blueprint is not used, create a Python web service with:
+
+| Setting | Value |
+|---|---|
+| Root directory | repository root |
+| Runtime | Python 3.12 |
+| Build command | `cd frontend && npm ci && npm run build && cd .. && pip install -r requirements.txt` |
+| Start command | `python scripts/start_render.py` |
+| Health-check path | `/api/health` |
+
+Do not set `OLLAMA_BASE_URL` to `127.0.0.1` unless Ollama is running in the same
+Render environment. Ollama is not included in the Render Blueprint. For hosted
+AI use, configure a reachable remote provider or deploy a separate hosted
+Ollama-compatible service and set `OLLAMA_BASE_URL`.
+
+### Environment variables
+
+For a public demo, no secrets are required. The API serves built-in or uploaded
+research data and keeps the public preview assistant restricted to Ollama.
+
+Optional variables:
+
+| Variable | Purpose |
+|---|---|
+| `GEMINI_API_KEY` | Gemini access, used only when explicitly enabled |
+| `GEMINI_MODEL` | Gemini model name |
+| `OLLAMA_BASE_URL` | Reachable Ollama-compatible API |
+| `OLLAMA_MODEL` | Installed model name |
+| `ENERGY_DATASET_STORAGE` | Persistent mounted directory for uploaded datasets |
+
+Store secrets only in Render environment settings. Uploaded datasets should use
+a Render disk for persistence; the free ephemeral filesystem will not retain
+them across restarts or redeploys.
+
+## Security and deployment boundaries
+
+- The public preview exposes only an allowlisted set of API routes.
+- Cross-origin POST requests and direct source, asset traversal, and internal
+  Ollama endpoints are blocked.
+- Uploaded CSV files are size and row bounded.
+- Raw uploaded CSV content is not passed to the assistant.
+- Local secrets and generated data are excluded by `.gitignore`.
+- LLM output never executes forecasting, retraining, optimization, or equipment
+  control.
+- A hosted public deployment must be reviewed separately for legal, privacy,
+  cost, and data-retention requirements before accepting real-world data.
+
+## Optional ML setup
+
+The default API and dashboard do not require training dependencies. PyTorch,
+GPU, Colab, or data-training configuration is only needed for reproducible
+research experiments.
+
+- [ML environment setup](docs/ml_environment_setup.md)
+- [Windows storage setup](docs/windows_storage_setup.md)
+- [AI stack integration plan](docs/ai_stack_integration_plan.md)
+
+## License
+
+No license is currently specified. Confirm the intended license before
+redistributing or commercializing this project.
