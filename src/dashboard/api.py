@@ -320,7 +320,7 @@ class APIRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": str(exc)}, status=exc.status)
                 return
         from src.assistant.energy_assistant import answer_energy_query
-        response = answer_energy_query(message=message, history=history, provider=data.get("provider"), model=data.get("model"), dataset_summary=summary, research=data.get("research") is True)
+        response = answer_energy_query(message=message, history=history, provider=data.get("provider"), dataset_summary=summary, research=data.get("research") is True)
         self.send_json(response, status=200)
 
     def handle_health(self):

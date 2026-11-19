@@ -9,8 +9,6 @@ import {
   FALLBACK_RESEARCH_RESULTS,
   FALLBACK_RISK_RESULTS,
   FALLBACK_ADAPTIVE_RESULTS,
-  FALLBACK_ASSISTANT_STATUS,
-  getFallbackAssistantAnswer,
   generateSampleAdaptiveTrajectory,
   generateSampleTimeseries
 } from './fallbackData';
@@ -153,7 +151,7 @@ export const api = {
       if (!response.ok || result.status === 'error' || result.status === 'invalid_input') throw new Error(result.error || result.answer || 'The selected assistant could not answer.');
       return result;
     } catch (error) {
-      if (error.name === 'AbortError') throw new Error('The assistant took too long. Try a shorter question or a smaller local model.');
+      if (error.name === 'AbortError') throw new Error('Gemini took too long to answer. Try again with a shorter question.');
       throw error;
     } finally { clearTimeout(timeout); }
   },

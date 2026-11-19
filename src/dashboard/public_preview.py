@@ -129,15 +129,12 @@ class PreviewHandler(BaseHTTPRequestHandler):
                     raise ValueError()
             except (ValueError, UnicodeError):
                 return self.reply(400, {"error": "Invalid chat request"})
-            if data.get("provider") == "gemini":
-                if not gemini_preview_enabled():
-                    return self.reply(503, {"error": "Gemini is not enabled for this hosted assistant."})
-                if not valid_gemini_access_key(self.headers.get("Authorization", "")):
-                    return self.reply(401, {"error": "Enter a valid assistant access key to use Gemini."})
-            else:
-                # The public preview does not accept arbitrary providers or model
-                # downloads. The local backend enforces installed model names.
-                data["provider"] = "ollama"
+            if not gemini_preview_enabled():
+                return self.reply(503, {"error": "Gemini is not enabled for this hosted assistant."})
+            if not valid_gemini_access_key(self.headers.get("Authorization", "")):
+                return self.reply(401, {"error": "Enter a valid assistant access key to use Gemini."})
+            data["provider"] = "gemini"
+            data.pop("model", None)
             body = json.dumps(data).encode()
             client = self.headers.get("CF-Connecting-IP", self.client_address[0])
             now = time.monotonic()
@@ -152,7 +149,7 @@ class PreviewHandler(BaseHTTPRequestHandler):
                 hits.append(now)
             slot = MODEL_SLOT.acquire(blocking=False)
             if not slot:
-                return self.reply(429, {"error": "The local assistant is answering another visitor. Please try again shortly."})
+                return self.reply(429, {"error": "Gemini is answering another visitor. Please try again shortly."})
         conn = http.client.HTTPConnection("127.0.0.1", 8000, timeout=110)
         try:
             headers = {"Content-Type": self.headers.get("Content-Type", "application/json"), "Origin": "http://127.0.0.1:8000"}
@@ -165,7 +162,7 @@ class PreviewHandler(BaseHTTPRequestHandler):
                 data = json.loads(payload)
                 gemini_enabled = gemini_preview_enabled()
                 data.update({
-                    "default_provider": "gemini" if gemini_enabled else "ollama",
+                    "default_provider": "gemini",
                     "gemini_configured": gemini_enabled,
                     "assistant_access_required": gemini_enabled,
                     "public_preview": True,

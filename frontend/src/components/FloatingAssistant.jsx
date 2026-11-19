@@ -11,8 +11,6 @@ export default function FloatingAssistant({ open, setOpen }) {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState(null);
-  const [provider, setProvider] = useState(() => localStorage.getItem('energy-assistant-provider') || 'ollama');
-  const [model, setModel] = useState('');
   const [accessKey, setAccessKey] = useState('');
   const [research, setResearch] = useState(false);
   const [error, setError] = useState('');
@@ -31,13 +29,6 @@ export default function FloatingAssistant({ open, setOpen }) {
   }, [open]);
   const refreshStatus = () => api.getAssistantStatus().then(result => {
     setStatus(result);
-    if (result.public_preview && result.gemini_configured) {
-      setProvider('gemini');
-      localStorage.setItem('energy-assistant-provider', 'gemini');
-    } else if (!localStorage.getItem('energy-assistant-provider')) {
-      setProvider(result.default_provider || 'ollama');
-    }
-    setModel(current => result.ollama?.models?.includes(current) ? current : result.ollama?.models?.includes(result.ollama?.model) ? result.ollama.model : result.ollama?.models?.[0] || '');
   }).catch(() => setStatus({ unavailable: true }));
   useEffect(() => { if (open && !status) refreshStatus(); }, [open, status]);
 
@@ -49,7 +40,7 @@ export default function FloatingAssistant({ open, setOpen }) {
     const history = messages.slice(-6).map(m => ({ role: m.role === 'user' ? 'user' : 'model', content: m.text }));
     setMessages(prev => [...prev, { role: 'user', text }]);
     try {
-      const response = await api.sendAssistantMessage(text, history, { provider, model: provider === 'ollama' ? model : undefined, dataset_id: source !== 'none' ? source : undefined, research, accessKey: provider === 'gemini' ? accessKey : undefined });
+      const response = await api.sendAssistantMessage(text, history, { provider: 'gemini', dataset_id: source !== 'none' ? source : undefined, research, accessKey: status?.public_preview ? accessKey : undefined });
       if (!response.answer) throw new Error('The assistant did not return an answer. Please try again.');
       setMessages(prev => [...prev, { role: 'assistant', text: response.answer, sources: response.sources || [], provider: response.provider, model: response.model }]);
     } catch (e) { setError(e.message || 'The assistant is unavailable. Please try again.'); }
@@ -57,19 +48,18 @@ export default function FloatingAssistant({ open, setOpen }) {
   };
   return <>
     <section id="energy-assistant-window" hidden={!open} className="floating-assistant" role="dialog" aria-modal="false" aria-labelledby="floating-assistant-title">
-      <header className="assistant-titlebar"><div className="assistant-avatar"><Bot size={21} /></div><div><h2 id="floating-assistant-title">Energy assistant</h2><p>{!status ? 'Checking availability...' : status.unavailable ? 'Service unavailable' : provider === 'ollama' ? status.ollama?.available ? 'Local Ollama' : 'Ollama not connected' : status.gemini_configured ? 'Gemini available' : 'Gemini not configured'}</p></div><button aria-label="Minimize assistant" onClick={close}><Minus size={18} /></button><button aria-label="Close assistant" onClick={close}><X size={18} /></button></header>
+      <header className="assistant-titlebar"><div className="assistant-avatar"><Bot size={21} /></div><div><h2 id="floating-assistant-title">Energy assistant</h2><p>{!status ? 'Checking Gemini API...' : status.unavailable ? 'Service unavailable' : status.gemini_configured ? 'Gemini API available' : 'Gemini API not configured'}</p></div><button aria-label="Minimize assistant" onClick={close}><Minus size={18} /></button><button aria-label="Close assistant" onClick={close}><X size={18} /></button></header>
       <div className="assistant-provider-controls">
-        <label>Assistant<select aria-label="Assistant provider" disabled={busy} value={provider} onChange={e => { setProvider(e.target.value); localStorage.setItem('energy-assistant-provider', e.target.value); }}><option value="ollama">Ollama / local</option><option value="gemini">Gemini / cloud</option></select></label>
-        {provider === 'ollama' && <label>Local model<select aria-label="Local Ollama model" disabled={busy} value={model} onChange={e => setModel(e.target.value)}>{!model && <option value="">No model installed</option>}{(status?.ollama?.models || []).map(name => <option key={name}>{name}</option>)}</select></label>}
+        <div className="assistant-provider-label"><span>Answer provider</span><strong>Google Gemini API</strong></div>
         <button type="button" aria-label="Refresh assistant connection" onClick={refreshStatus} disabled={busy}>Refresh</button>
       </div>
-      {provider === 'gemini' && status?.assistant_access_required && <label className="assistant-access-key">Assistant access key<input type="password" autoComplete="current-password" value={accessKey} onChange={e => setAccessKey(e.target.value)} disabled={busy} placeholder="Enter your Render access key" /></label>}
-      <div className="assistant-scope">{provider === 'ollama' ? 'Local processing. No automatic cloud fallback.' : 'Cloud processing: questions and any active dataset summary are sent to Gemini.'} {activeMeta ? `Active data: ${activeMeta.name}` : 'No site data selected; general guidance only.'}</div>
+      {status?.assistant_access_required && <label className="assistant-access-key">Assistant access key<input type="password" autoComplete="current-password" value={accessKey} onChange={e => setAccessKey(e.target.value)} disabled={busy} placeholder="Enter your Render access key" /></label>}
+      <div className="assistant-scope">Answers are generated with Gemini. Questions and any active dataset summary are sent to Google. {activeMeta ? `Active data: ${activeMeta.name}` : 'No site data selected; general guidance only.'}</div>
       <label className="assistant-research-toggle"><input type="checkbox" checked={research} disabled={busy} onChange={e => setResearch(e.target.checked)} />Include published research references</label>
-      {provider === 'ollama' && status && !status.ollama?.available && <div className="assistant-upload-notice">Start Ollama on this computer, then refresh. Install a model with Ollama if none is listed.</div>}
+      {status && !status.gemini_configured && <div className="assistant-upload-notice">Gemini API is not configured on the server. Add GEMINI_API_KEY in the server environment and refresh.</div>}
       <div ref={streamRef} className="assistant-stream" role="log" aria-label="Conversation" aria-live="polite" aria-relevant="additions text">
         {!messages.length && <div className="assistant-welcome"><MessageCircle size={28} /><h3>Make sense of your energy.</h3><p>Ask about energy flows, battery decisions, or the results behind this project.</p><div className="assistant-prompts">{['How does the energy system work?', 'Why does battery charge matter?', 'How can I reduce peak energy use?'].map(q => <button disabled={busy} key={q} onClick={() => send(q)}>{q}</button>)}</div></div>}
-        {messages.map((m, i) => <article className={`assistant-message ${m.role}`} key={i}><span className="sr-only">{m.role === 'user' ? 'You' : 'Energy assistant'}:</span><div className="whitespace-pre-wrap break-words">{m.text}</div>{m.provider && <small>{m.provider === 'calculated' ? 'Verified calculation' : m.provider === 'ollama' ? 'Ollama / local' : 'Gemini / cloud'}{m.model ? ` / ${m.model}` : ''}</small>}{m.sources?.length > 0 && <details><summary>{m.sources.length} sources <ChevronDown size={12} /></summary><ul>{m.sources.map((s,j) => <li key={j}>{s.title || 'Project reference'}</li>)}</ul></details>}</article>)}
+        {messages.map((m, i) => <article className={`assistant-message ${m.role}`} key={i}><span className="sr-only">{m.role === 'user' ? 'You' : 'Energy assistant'}:</span><div className="whitespace-pre-wrap break-words">{m.text}</div>{m.provider && <small>{m.provider === 'gemini' ? 'Gemini API' : m.provider}{m.model ? ` / ${m.model}` : ''}</small>}{m.sources?.length > 0 && <details><summary>{m.sources.length} sources <ChevronDown size={12} /></summary><ul>{m.sources.map((s,j) => <li key={j}>{s.title || 'Project reference'}</li>)}</ul></details>}</article>)}
         {busy && <div className="assistant-thinking" role="status"><Loader2 size={15} className="animate-spin" />Finding relevant information...</div>}
       </div>
       {error && <div className="assistant-error" role="alert">{error}</div>}

@@ -22,7 +22,7 @@ CSV dataset uploads and an optional energy-assistant interface.
 - Simulation result exports
 - Bounded CSV upload, validation, analysis, and column mapping
 - Read-only research API with an illustrative-data fallback
-- Optional local Ollama or Gemini assistant
+- Gemini-powered energy assistant
 - Public-demo safeguards for rate limiting and request validation
 
 ## Research status
@@ -52,7 +52,7 @@ Python research API
         |
         +-- Simulation and controller artifacts
         +-- CSV dataset store
-        +-- Optional Ollama or Gemini assistant
+        +-- Gemini-powered assistant
 ```
 
 ### Main directories
@@ -65,7 +65,7 @@ Python research API
 | `src/simulation/` | Microgrid simulation environment |
 | `src/baselines/` | Causal controller baselines |
 | `src/forecasting/` | Forecasting models and evaluation pipeline |
-| `src/assistant/` | Ollama, Gemini, RAG, and MCP integrations |
+| `src/assistant/` | Gemini, RAG, and MCP integrations |
 | `src/risk/` | Risk-management components |
 | `tests/` | Python and frontend test coverage |
 | `configs/` | Data, experiment, and controller configuration |
@@ -163,28 +163,9 @@ start the dashboard.
 
 ## Assistant configuration
 
-The default assistant provider is local Ollama. See `.env.example` for variable
-names. Never commit an actual `.env` file or API key.
-
-**Local Ollama**
-
-1. Install and start [Ollama](https://ollama.com/).
-2. Pull a model:
-
-   ```bash
-   ollama pull llama3.2:3b
-   ```
-
-3. Configure:
-
-   ```dotenv
-   ENERGY_ASSISTANT_PROVIDER=ollama
-   OLLAMA_BASE_URL=http://127.0.0.1:11434
-   OLLAMA_MODEL=llama3.2:3b
-   OLLAMA_NUM_GPU=0
-   ```
-
-**Gemini**
+The assistant generates every answer with Gemini; there is no Ollama or saved-
+answer fallback. See `.env.example` for variable names. Never commit an actual
+`.env` file or API key.
 
 Set environment variables on the backend only:
 
@@ -195,8 +176,10 @@ GEMINI_MODEL=gemini-2.5-flash
 ```
 
 Gemini calls send the question, bounded conversation history, and selected
-dataset summary to Google. The public preview disables Gemini and only permits
-its explicitly bounded local-model flow.
+dataset summary to Google. On the public preview, set
+`ENERGY_ASSISTANT_ACCESS_KEY` to a random secret of at least 32 characters.
+Enter that access key in the assistant panel. Keep it separate from
+`GEMINI_API_KEY` and never put either key in frontend code.
 
 The uploaded CSV is summarized and validated by the backend; raw upload content
 is not included in assistant prompts.
@@ -217,91 +200,22 @@ npm test
 npm run build
 ```
 
-Run all relevant tests before deployment. This repository has no live equipment
+Run all relevant tests before releasing changes. This repository has no live equipment
 dependency, GPU requirement, or external dataset requirement for the existing
 test suite.
 
-## Deploy to Render
-
-The repository includes a Render Blueprint in `render.yaml`. It publishes the
-built React interface and Python API as one web service so the browser uses the
-same origin.
-
-### One-time deployment
-
-1. Push the repository to GitHub.
-2. Open the [Render Dashboard](https://dashboard.render.com/).
-3. Select **New > Blueprint**.
-4. Connect the GitHub repository `tuwuli07/Adaptive-Energy-Brain`.
-5. Render will detect `render.yaml`.
-6. Review and create the service.
-7. Wait for the build to finish, then open the generated `*.onrender.com` URL.
-
-The Blueprint performs this build:
-
-```bash
-cd frontend
-npm ci
-npm run build
-cd ..
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-```
-
-The start command launches the Python API and the public preview gateway:
-
-```bash
-python scripts/start_render.py
-```
-
-### Manual Render configuration
-
-If the Blueprint is not used, create a Python web service with:
-
-| Setting | Value |
-|---|---|
-| Root directory | repository root |
-| Runtime | Python 3.12 |
-| Build command | `cd frontend && npm ci && npm run build && cd .. && pip install -r requirements.txt` |
-| Start command | `python scripts/start_render.py` |
-| Health-check path | `/api/health` |
-
-Do not set `OLLAMA_BASE_URL` to `127.0.0.1` unless Ollama is running in the same
-Render environment. Ollama is not included in the Render Blueprint. For hosted
-AI use, configure a reachable remote provider or deploy a separate hosted
-Ollama-compatible service and set `OLLAMA_BASE_URL`.
-
-### Environment variables
-
-For a public demo, no secrets are required. The API serves built-in or uploaded
-research data and keeps the public preview assistant restricted to Ollama.
-
-Optional variables:
-
-| Variable | Purpose |
-|---|---|
-| `GEMINI_API_KEY` | Gemini access, used only when explicitly enabled |
-| `GEMINI_MODEL` | Gemini model name |
-| `OLLAMA_BASE_URL` | Reachable Ollama-compatible API |
-| `OLLAMA_MODEL` | Installed model name |
-| `ENERGY_DATASET_STORAGE` | Persistent mounted directory for uploaded datasets |
-
-Store secrets only in Render environment settings. Uploaded datasets should use
-a Render disk for persistence; the free ephemeral filesystem will not retain
-them across restarts or redeploys.
-
-## Security and deployment boundaries
+## Security boundaries
 
 - The public preview exposes only an allowlisted set of API routes.
 - Cross-origin POST requests and direct source, asset traversal, and internal
-  Ollama endpoints are blocked.
+  internal model endpoints are blocked.
 - Uploaded CSV files are size and row bounded.
 - Raw uploaded CSV content is not passed to the assistant.
 - Local secrets and generated data are excluded by `.gitignore`.
 - LLM output never executes forecasting, retraining, optimization, or equipment
   control.
-- A hosted public deployment must be reviewed separately for legal, privacy,
-  cost, and data-retention requirements before accepting real-world data.
+- Review legal, privacy, cost, and data-retention requirements before accepting
+  real-world data.
 
 ## Optional ML setup
 

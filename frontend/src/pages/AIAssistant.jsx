@@ -143,7 +143,7 @@ export default function AIAssistant() {
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 text-xs font-semibold text-blue-700 dark:text-blue-300">
             <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-            <span>{status?.gemini_configured ? 'Assistant available' : 'Saved answers'}</span>
+            <span>{status?.gemini_configured ? 'Gemini API available' : 'Gemini API unavailable'}</span>
             <span className={`w-2 h-2 rounded-full ${status?.gemini_configured ? 'bg-blue-500 animate-pulse' : 'bg-amber-400'}`} />
           </div>
 
@@ -274,9 +274,6 @@ export default function AIAssistant() {
                   }`}
                 >
                   {msg.timestamp}
-                  {msg.status === 'offline_fallback' && (
-                    <span className="ml-2 text-amber-500">· Saved answer</span>
-                  )}
                 </div>
               </div>
 
