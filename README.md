@@ -176,10 +176,10 @@ GEMINI_MODEL=gemini-2.5-flash
 ```
 
 Gemini calls send the question, bounded conversation history, and selected
-dataset summary to Google. On the public preview, set
-`ENERGY_ASSISTANT_ACCESS_KEY` to a random secret of at least 32 characters.
-Enter that access key in the assistant panel. Keep it separate from
-`GEMINI_API_KEY` and never put either key in frontend code.
+dataset summary to Google. The public preview does not require an assistant
+access key; anyone who can reach the public site can send Gemini requests and
+consume the configured API quota. Apply usage limits in Google AI Studio and
+monitor API usage. Never put `GEMINI_API_KEY` in frontend code.
 
 The uploaded CSV is summarized and validated by the backend; raw upload content
 is not included in assistant prompts.

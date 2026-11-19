@@ -4,7 +4,6 @@ Run with python -m src.dashboard.public_preview. Tunnel port 8787, never the
 repository, development server, backend port, or Ollama port directly.
 """
 import http.client
-import hmac
 import json
 import mimetypes
 import os
@@ -36,19 +35,6 @@ def gemini_preview_enabled(environ=None):
     return (
         env.get("ENERGY_ASSISTANT_PROVIDER", "").strip().lower() == "gemini"
         and bool(env.get("GEMINI_API_KEY", "").strip())
-        and len(env.get("ENERGY_ASSISTANT_ACCESS_KEY", "")) >= 32
-    )
-
-
-def valid_gemini_access_key(authorization, environ=None):
-    env = os.environ if environ is None else environ
-    expected = env.get("ENERGY_ASSISTANT_ACCESS_KEY", "")
-    scheme, separator, supplied = authorization.partition(" ")
-    return (
-        gemini_preview_enabled(env)
-        and scheme.lower() == "bearer"
-        and bool(separator)
-        and hmac.compare_digest(supplied.encode("utf-8"), expected.encode("utf-8"))
     )
 
 
@@ -131,8 +117,6 @@ class PreviewHandler(BaseHTTPRequestHandler):
                 return self.reply(400, {"error": "Invalid chat request"})
             if not gemini_preview_enabled():
                 return self.reply(503, {"error": "Gemini is not enabled for this hosted assistant."})
-            if not valid_gemini_access_key(self.headers.get("Authorization", "")):
-                return self.reply(401, {"error": "Enter a valid assistant access key to use Gemini."})
             data["provider"] = "gemini"
             data.pop("model", None)
             body = json.dumps(data).encode()
@@ -164,7 +148,7 @@ class PreviewHandler(BaseHTTPRequestHandler):
                 data.update({
                     "default_provider": "gemini",
                     "gemini_configured": gemini_enabled,
-                    "assistant_access_required": gemini_enabled,
+                    "assistant_access_required": False,
                     "public_preview": True,
                 })
                 payload = json.dumps(data).encode()

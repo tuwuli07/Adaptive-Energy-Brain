@@ -11,7 +11,6 @@ export default function FloatingAssistant({ open, setOpen }) {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState(null);
-  const [accessKey, setAccessKey] = useState('');
   const [research, setResearch] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef(null);
@@ -40,7 +39,7 @@ export default function FloatingAssistant({ open, setOpen }) {
     const history = messages.slice(-6).map(m => ({ role: m.role === 'user' ? 'user' : 'model', content: m.text }));
     setMessages(prev => [...prev, { role: 'user', text }]);
     try {
-      const response = await api.sendAssistantMessage(text, history, { provider: 'gemini', dataset_id: source !== 'none' ? source : undefined, research, accessKey: status?.public_preview ? accessKey : undefined });
+      const response = await api.sendAssistantMessage(text, history, { provider: 'gemini', dataset_id: source !== 'none' ? source : undefined, research });
       if (!response.answer) throw new Error('The assistant did not return an answer. Please try again.');
       setMessages(prev => [...prev, { role: 'assistant', text: response.answer, sources: response.sources || [], provider: response.provider, model: response.model }]);
     } catch (e) { setError(e.message || 'The assistant is unavailable. Please try again.'); }
@@ -53,7 +52,6 @@ export default function FloatingAssistant({ open, setOpen }) {
         <div className="assistant-provider-label"><span>Answer provider</span><strong>Google Gemini API</strong></div>
         <button type="button" aria-label="Refresh assistant connection" onClick={refreshStatus} disabled={busy}>Refresh</button>
       </div>
-      {status?.assistant_access_required && <label className="assistant-access-key">Assistant access key<input type="password" autoComplete="current-password" value={accessKey} onChange={e => setAccessKey(e.target.value)} disabled={busy} placeholder="Enter your Render access key" /></label>}
       <div className="assistant-scope">Answers are generated with Gemini. Questions and any active dataset summary are sent to Google. {activeMeta ? `Active data: ${activeMeta.name}` : 'No site data selected; general guidance only.'}</div>
       <label className="assistant-research-toggle"><input type="checkbox" checked={research} disabled={busy} onChange={e => setResearch(e.target.checked)} />Include published research references</label>
       {status && !status.gemini_configured && <div className="assistant-upload-notice">Gemini API is not configured on the server. Add GEMINI_API_KEY in the server environment and refresh.</div>}

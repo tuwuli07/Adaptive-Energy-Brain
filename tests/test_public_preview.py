@@ -2,7 +2,6 @@ from src.dashboard.public_preview import (
     allowed_api,
     gemini_preview_enabled,
     safe_static,
-    valid_gemini_access_key,
 )
 
 
@@ -25,17 +24,13 @@ def test_public_api_has_explicit_route_and_method_allowlist():
     assert not allowed_api("DELETE", "/api/datasets/" + "a" * 32)
 
 
-def test_gemini_preview_requires_configured_provider_key_and_access_key():
-    access_key = "a" * 43
+def test_gemini_preview_requires_provider_and_api_key_but_not_access_key():
     configured = {
         "ENERGY_ASSISTANT_PROVIDER": "gemini",
         "GEMINI_API_KEY": "provider-secret",
-        "ENERGY_ASSISTANT_ACCESS_KEY": access_key,
     }
 
     assert gemini_preview_enabled(configured)
-    assert valid_gemini_access_key("Bearer " + access_key, configured)
-    assert not valid_gemini_access_key("Bearer wrong", configured)
-    assert not valid_gemini_access_key(access_key, configured)
-    assert not gemini_preview_enabled({**configured, "ENERGY_ASSISTANT_ACCESS_KEY": "short"})
+    assert gemini_preview_enabled({**configured, "ENERGY_ASSISTANT_ACCESS_KEY": ""})
+    assert not gemini_preview_enabled({**configured, "GEMINI_API_KEY": ""})
     assert not gemini_preview_enabled({**configured, "ENERGY_ASSISTANT_PROVIDER": "ollama"})
